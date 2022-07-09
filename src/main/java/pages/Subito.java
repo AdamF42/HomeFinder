@@ -1,3 +1,5 @@
+package pages;
+
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -7,22 +9,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Subito implements Page {
+public class Subito implements Page, Cloneable{
 
     private static final String baseUrl = "https://www.subito.it";
+    private final String startingUrl;
 
-    private Document document;
-
-    private int pageNum = 1;
+    private final Document document;
 
     public Subito(String url) {
+        startingUrl = url;
         document = getDocument(url);
     }
-
-    private Subito(String url, int pageNum) {
-        document = getDocument(url);
-    }
-
+    
     @Override
     public List<String> getLinks() {
         return getLinks(document);
@@ -36,15 +34,19 @@ public class Subito implements Page {
     @Override
     public Page getNextPage() {
         Elements elements = document.select("div:nth-child(2) > nav > a");
-        List<String> arrowLinks = elements.stream().map(e -> e.attributes().get("href")).toList();
+        List<String> arrowLinks = elements.stream().map(e -> e.attributes().get("href")).collect(Collectors.toList());
         String url = arrowLinks.get(arrowLinks.size() - 1);
 
-        return new Subito(baseUrl + url, pageNum +1);
+        return new Subito(baseUrl + url);
+    }
+
+    @Override
+    public String getStartUrl() {
+        return startingUrl;
     }
 
 
     private static Document getDocument(String url) {
-        System.out.println(url);
         Connection conn = Jsoup.connect(url);
         Document document = null;
         try {
@@ -60,4 +62,8 @@ public class Subito implements Page {
         return document.select(".item-card > a").stream().map(e -> e.attributes().get("href")).collect(Collectors.toList());
     }
 
+    @Override
+    public Subito clone() {
+        return new Subito(document.location());
+    }
 }

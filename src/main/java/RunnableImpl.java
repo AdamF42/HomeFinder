@@ -1,9 +1,8 @@
-import io.vavr.control.Either;
 import io.vavr.control.Try;
-import org.apache.commons.codec.binary.StringUtils;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import pages.Page;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,9 +30,9 @@ class RunnableImpl implements Runnable {
 
     private long millis;
 
-    public static RunnableImpl getInstance(TelegramLongPollingBot bot, String chatId, Page page, long millis){
+    public static RunnableImpl getInstance(TelegramLongPollingBot bot, String chatId, Page page, long millis) {
         RunnableImpl result = instance;
-        if(result==null){
+        if (result == null) {
             synchronized (RunnableImpl.class) {
                 result = instance;
                 if (result == null) {
@@ -51,13 +50,13 @@ class RunnableImpl implements Runnable {
         this.millis = millis;
     }
 
-    public void setShouldRun(boolean val){
+    public void setShouldRun(boolean val) {
         this.shouldRun = val;
     }
 
     public void run() {
-        System.out.println("RUN");
         while (shouldRun) {
+            System.out.println("loop on: " + page.getStartUrl());
             try {
                 getAllLinks().stream()
                         .filter(RunnableImpl::isNew)
@@ -71,12 +70,12 @@ class RunnableImpl implements Runnable {
         }
     }
 
-    private static  String save(String str) {
+    private static String save(String str) {
         return Try.ofCallable(writeString(str)).getOrElse("");
     }
 
     private static Callable<String> writeString(String str) {
-        return ()->{
+        return () -> {
             FileWriter writer = new FileWriter(dataFile, true);
             writer.write(str + System.lineSeparator());
             writer.close();
@@ -92,7 +91,7 @@ class RunnableImpl implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         return !result.contains(s);
     }
 
@@ -107,13 +106,14 @@ class RunnableImpl implements Runnable {
         }
     }
 
-
     private List<String> getAllLinks() {
-        List<String> links = page.getLinks();
-        while (page.hasNextPage()) {
-            page = page.getNextPage();
-            links.addAll(page.getLinks());
+        Page cp = page.clone();
+        List<String> links = cp.getLinks();
+        while (cp.hasNextPage()) {
+            cp = cp.getNextPage();
+            links.addAll(cp.getLinks());
         }
+        System.out.println("LIST SIZE: " + links.size());
         return links;
     }
 }
