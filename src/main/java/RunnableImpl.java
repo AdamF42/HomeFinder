@@ -56,15 +56,20 @@ class RunnableImpl implements Runnable {
 
     public void run() {
         while (shouldRun) {
-            System.out.println("loop on: " + page.getStartUrl());
+//            System.out.println("loop on: " + page.getStartUrl());
             try {
                 getAllLinks().stream()
                         .filter(RunnableImpl::isNew)
                         .map(RunnableImpl::save)
                         .filter(e -> !e.isEmpty())
                         .forEach(msg -> sendMsg(this.chatId, msg));
-                Thread.sleep(millis);
             } catch (Exception e) {
+                System.out.println("ROTTO");
+                e.printStackTrace();
+            }
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -110,6 +115,11 @@ class RunnableImpl implements Runnable {
         Page cp = page.clone();
         List<String> links = cp.getLinks();
         while (cp.hasNextPage()) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             cp = cp.getNextPage();
             links.addAll(cp.getLinks());
         }

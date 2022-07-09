@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b8e9c16a-8e4c-4af3-b284-f74a792d76e5" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Bot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Bot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/RunnableImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/RunnableImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Casa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Casa.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Subito.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Subito.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,6 +41,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="project.structure.last.edited" value="Global Libraries" />
     <property name="project.structure.proportion" value="0.0" />
     <property name="project.structure.side.proportion" value="0.2" />
@@ -74,7 +81,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1657383824558</updated>
-      <workItem from="1657383827033" duration="14549000" />
+      <workItem from="1657383827033" duration="16384000" />
     </task>
     <servers />
   </component>

@@ -47,7 +47,12 @@ public class Subito implements Page, Cloneable{
 
 
     private static Document getDocument(String url) {
-        Connection conn = Jsoup.connect(url);
+        Connection conn = Jsoup.connect(url)
+//                .ignoreHttpErrors(true)
+                .timeout(5000)
+                .referrer("http://www.google.com")
+                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36");
+
         Document document = null;
         try {
             document = conn.get();

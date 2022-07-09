@@ -16,7 +16,7 @@ class Bot extends TelegramLongPollingBot {
     RunnableImpl cs;
 
     // private static final long millis = 5*60*1000;
-    private static final long millis = 10 * 60 * 1000;
+    private static final long millis = 30 * 60 * 1000;
     private static final int maxPrice = 900;
     private static final int minPrice = 200;
     private static final int roomNumber = 3;

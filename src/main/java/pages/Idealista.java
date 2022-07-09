@@ -35,7 +35,7 @@ public class Idealista implements Page{
         Elements elements = document.select("#main-content > section > div > ul > li.next > a");
         String url = elements.stream()
                 .map(e -> e.attributes().get("href")) //
-                .findFirst().get();
+                .findFirst().orElseThrow();
         return new Idealista(baseUrl + url);
     }
 
