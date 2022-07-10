@@ -1,4 +1,5 @@
-import pages.*;
+import pages.Casa;
+import pages.Page;
 
 import java.util.List;
 

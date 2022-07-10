@@ -1,0 +1,155 @@
+2022-07-10_16:50:03.297 [main] INFO  Bot - Bot started
+2022-07-10_16:51:01.035 [main] INFO  Bot - Bot started
+2022-07-10_16:51:26.917 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_16:51:27.120 [pool-2-thread-2] DEBUG runnable.RunnableImpl - https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 List size: 27
+2022-07-10_16:51:27.140 [pool-2-thread-4] DEBUG runnable.RunnableImpl - https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 List size: 14
+2022-07-10_16:51:27.327 [pool-2-thread-1] DEBUG runnable.RunnableImpl - https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 List size: 12
+2022-07-10_16:51:35.042 [pool-2-thread-3] DEBUG runnable.RunnableImpl - https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_900,prezzo-min_200,trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc List size: 36
+2022-07-10_16:51:51.353 [pool-2-thread-2] DEBUG runnable.RunnableImpl - https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 List size: 27
+2022-07-10_16:51:55.828 [pool-2-thread-1] DEBUG runnable.RunnableImpl - https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 List size: 12
+2022-07-10_16:51:56.335 [pool-2-thread-4] DEBUG runnable.RunnableImpl - https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 List size: 14
+2022-07-10_16:58:01.613 [main] INFO  Bot - Bot started
+2022-07-10_16:59:35.924 [main] INFO  Bot - Bot started
+2022-07-10_17:01:16.742 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_17:04:40.980 [main] INFO  Bot - Bot started
+2022-07-10_17:06:44.506 [main] INFO  Bot - Bot started
+2022-07-10_17:06:45.493 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_17:06:45.611 [pool-2-thread-2] DEBUG runnable.RunnableImpl - https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 List size: 27
+2022-07-10_17:06:45.685 [pool-2-thread-4] DEBUG runnable.RunnableImpl - https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 List size: 14
+2022-07-10_17:06:45.828 [pool-2-thread-1] DEBUG runnable.RunnableImpl - https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 List size: 12
+2022-07-10_17:06:52.498 [pool-2-thread-3] DEBUG runnable.RunnableImpl - https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_900,prezzo-min_200,trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc List size: 36
+2022-07-10_17:06:52.612 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_17:07:06.921 [main] INFO  Bot - Bot started
+2022-07-10_17:07:37.784 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_17:14:32.422 [main] INFO  Bot - Bot started
+2022-07-10_18:10:14.970 [main] INFO  Bot - Bot started
+2022-07-10_18:10:22.380 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_18:10:22.594 [pool-2-thread-2] DEBUG runnable.RunnableImpl - [PAGE] https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 [LIST]: 27
+2022-07-10_18:10:22.599 [pool-2-thread-2] ERROR runnable.RunnableImpl - Unable to read file
+java.nio.file.NoSuchFileException: ./data.txt
+	at java.base/sun.nio.fs.UnixException.translateToIOException(UnixException.java:92)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:111)
+	at java.base/sun.nio.fs.UnixException.rethrowAsIOException(UnixException.java:116)
+	at java.base/sun.nio.fs.UnixFileSystemProvider.newFileChannel(UnixFileSystemProvider.java:182)
+	at java.base/java.nio.channels.FileChannel.open(FileChannel.java:292)
+	at java.base/java.nio.channels.FileChannel.open(FileChannel.java:345)
+	at java.base/java.nio.file.Files.lines(Files.java:4038)
+	at java.base/java.nio.file.Files.lines(Files.java:4130)
+	at runnable.RunnableImpl.isNew(RunnableImpl.java:67)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:176)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1655)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:484)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:474)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:150)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:173)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:497)
+	at runnable.RunnableImpl.run(RunnableImpl.java:93)
+	at java.base/java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:515)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1128)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:628)
+	at java.base/java.lang.Thread.run(Thread.java:829)
+2022-07-10_18:10:22.599 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/ampio-appartamento-per-studentesse-univ-bologna-446803935.htm
+2022-07-10_18:10:22.610 [pool-2-thread-4] DEBUG runnable.RunnableImpl - [PAGE] https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 [LIST]: 14
+2022-07-10_18:10:22.612 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44572156/
+2022-07-10_18:10:22.729 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44725174/
+2022-07-10_18:10:22.788 [pool-2-thread-1] DEBUG runnable.RunnableImpl - [PAGE] https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 [LIST]: 12
+2022-07-10_18:10:22.788 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96923816/
+2022-07-10_18:10:22.803 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44710254/
+2022-07-10_18:10:22.854 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-borgo-panigale-bologna-446392071.htm
+2022-07-10_18:10:22.892 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44558570/
+2022-07-10_18:10:22.948 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/97045594/
+2022-07-10_18:10:23.003 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-murri-bologna-446366447.htm
+2022-07-10_18:10:23.038 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44574713/
+2022-07-10_18:10:23.115 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/97025326/
+2022-07-10_18:10:23.121 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-zona-mazzini-bologna-446361999.htm
+2022-07-10_18:10:23.228 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/97021622/
+2022-07-10_18:10:23.267 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/43737431/
+2022-07-10_18:10:23.367 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/ampia-stanza-singola-in-zona-san-donato-bologna-446284506.htm
+2022-07-10_18:10:23.451 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96884496/
+2022-07-10_18:10:23.499 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44646107/
+2022-07-10_18:10:23.546 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-san-donato-bologna-446243570.htm
+2022-07-10_18:10:23.601 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96344404/
+2022-07-10_18:10:23.645 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44750949/
+2022-07-10_18:10:23.698 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-strada-maggiore-bologna-446193033.htm
+2022-07-10_18:10:23.762 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96679012/
+2022-07-10_18:10:23.794 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44626771/
+2022-07-10_18:10:23.873 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-porta-san-felice-bologna-446076983.htm
+2022-07-10_18:10:23.887 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96648012/
+2022-07-10_18:10:23.973 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44689797/
+2022-07-10_18:10:24.010 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-massarenti-bologna-446064309.htm
+2022-07-10_18:10:24.081 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96570360/
+2022-07-10_18:10:24.125 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44715983/
+2022-07-10_18:10:24.176 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/stanza-singola-zona-massarenti-bologna-446055728.htm
+2022-07-10_18:10:24.232 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96345484/
+2022-07-10_18:10:24.264 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44654476/
+2022-07-10_18:10:24.308 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/camera-doppia-zona-s-donato-bologna-446049633.htm
+2022-07-10_18:10:24.362 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/96318704/
+2022-07-10_18:10:30.433 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44608271/
+2022-07-10_18:10:30.496 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-zona-saffi-bologna-446039475.htm
+2022-07-10_18:10:30.519 [pool-2-thread-3] DEBUG runnable.RunnableImpl - [PAGE] https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_900,prezzo-min_200,trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc [LIST]: 36
+2022-07-10_18:10:30.520 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/5875301/
+2022-07-10_18:10:30.525 [pool-2-thread-1] DEBUG runnable.RunnableImpl - New link: https://www.immobiliare.it/annunci/85701844/
+2022-07-10_18:10:30.605 [pool-2-thread-4] DEBUG runnable.RunnableImpl - New link: https://www.casa.it/immobili/44408728/
+2022-07-10_18:10:30.648 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-bologina-bologna-446011754.htm
+2022-07-10_18:10:30.695 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25153382/
+2022-07-10_18:10:30.904 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-in-zona-sant-orsola-bologna-445551530.htm
+2022-07-10_18:10:30.929 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25141577/
+2022-07-10_18:10:31.006 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-disponibile-da-subito-bologna-445533800.htm
+2022-07-10_18:10:31.061 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25141336/
+2022-07-10_18:10:31.124 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-in-zona-saffi-bologna-445363427.htm
+2022-07-10_18:10:31.174 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25138470/
+2022-07-10_18:10:31.238 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/bilocale-bologna-porta-galliera-via-indipendenza-bologna-445137105.htm
+2022-07-10_18:10:31.267 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25122160/
+2022-07-10_18:10:31.355 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/savena-luminoso-appartamento-con-balcone-bologna-443935169.htm
+2022-07-10_18:10:31.432 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25112363/
+2022-07-10_18:10:31.465 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-arredato-bologna-443800733.htm
+2022-07-10_18:10:31.550 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25112324/
+2022-07-10_18:10:31.581 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/5-locali-a-bologna-bologna-443784905.htm
+2022-07-10_18:10:31.664 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25107256/
+2022-07-10_18:10:31.704 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/trilocale-ristrutt-e-arredato-zona-pontevecchio-bologna-443191647.htm
+2022-07-10_18:10:31.776 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25087987/
+2022-07-10_18:10:31.827 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-80-mq-bologna-442162713.htm
+2022-07-10_18:10:31.875 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25086527/
+2022-07-10_18:10:31.921 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamentino-zona-mazzini-via-montanari-bologna-441415659.htm
+2022-07-10_18:10:31.971 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25083404/
+2022-07-10_18:10:32.031 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-in-per-due-persone-entro-settembr-bologna-440919968.htm
+2022-07-10_18:10:32.087 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/19657868/
+2022-07-10_18:10:38.558 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/tina-bologna-437509454.htm
+2022-07-10_18:10:38.558 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/22364804/
+2022-07-10_18:10:38.686 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25070388/
+2022-07-10_18:10:38.747 [pool-2-thread-2] DEBUG runnable.RunnableImpl - New link: https://www.subito.it/appartamenti/appartamento-semi-arredato-libero-da-giugno-2022-bologna-429777596.htm
+2022-07-10_18:10:38.807 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25049343/
+2022-07-10_18:10:38.887 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25047983/
+2022-07-10_18:10:39.014 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25039642/
+2022-07-10_18:10:39.125 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25038634/
+2022-07-10_18:10:39.228 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25018730/
+2022-07-10_18:10:39.399 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/25004272/
+2022-07-10_18:10:39.515 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24997661/
+2022-07-10_18:10:39.615 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24977745/
+2022-07-10_18:10:39.715 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24961733/
+2022-07-10_18:10:39.822 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24958943/
+2022-07-10_18:10:39.965 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24950577/
+2022-07-10_18:10:40.073 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24949112/
+2022-07-10_18:10:40.188 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/9162979/
+2022-07-10_18:10:40.302 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24910389/
+2022-07-10_18:10:40.409 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24929481/
+2022-07-10_18:10:40.532 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24906612/
+2022-07-10_18:10:40.648 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/11099196/
+2022-07-10_18:10:40.747 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24790626/
+2022-07-10_18:10:40.833 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24568134/
+2022-07-10_18:10:40.943 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24525090/
+2022-07-10_18:10:41.045 [pool-2-thread-3] DEBUG runnable.RunnableImpl - New link: https://www.idealista.it/immobile/24065439/
+2022-07-10_18:10:56.625 [pool-2-thread-4] DEBUG runnable.RunnableImpl - [PAGE] https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 [LIST]: 14
+2022-07-10_18:10:57.229 [pool-2-thread-1] DEBUG runnable.RunnableImpl - [PAGE] https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 [LIST]: 12
+2022-07-10_18:11:04.056 [pool-2-thread-2] DEBUG runnable.RunnableImpl - [PAGE] https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 [LIST]: 27
+2022-07-10_18:11:10.343 [pool-2-thread-3] DEBUG runnable.RunnableImpl - [PAGE] https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_900,prezzo-min_200,trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc [LIST]: 36
+2022-07-10_18:11:17.817 [pool-2-thread-4] DEBUG runnable.RunnableImpl - [PAGE] https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 [LIST]: 14
+2022-07-10_18:11:48.499 [main] INFO  Bot - Bot started
+2022-07-10_18:11:57.845 [Bot Telegram Executor] INFO  Bot - Received: start
+2022-07-10_18:11:58.099 [pool-2-thread-2] DEBUG runnable.RunnableImpl - [PAGE] https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=200&pe=900&rs=3 [LIST]: 27
+2022-07-10_18:11:58.107 [pool-2-thread-4] DEBUG runnable.RunnableImpl - [PAGE] https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMin=200&priceMax=900&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525 [LIST]: 14
+2022-07-10_18:11:58.326 [pool-2-thread-1] DEBUG runnable.RunnableImpl - [PAGE] https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=200&prezzoMassimo=900&superficieMinima=60&localiMinimo=3&idMZona[]=17&idMZona[]=23&idMZona[]=31 [LIST]: 12
+2022-07-10_18:12:03.966 [pool-2-thread-3] DEBUG runnable.RunnableImpl - [PAGE] https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_900,prezzo-min_200,trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc [LIST]: 36
+2022-07-10_18:12:08.329 [Bot Telegram Executor] INFO  Bot - Received: stop
