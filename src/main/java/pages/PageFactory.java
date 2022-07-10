@@ -18,9 +18,24 @@ public class PageFactory {
     }
 
     public enum PageType {
-        IMMOBILIARE,
-        SUBITO,
-        CASA,
-        IDEALISTA
+        IMMOBILIARE("immobiliare"),
+        SUBITO("subito"),
+        CASA("casa"),
+        IDEALISTA("idealista");
+
+        private String s;
+
+        PageType(String text) {
+            this.s = text;
+        }
+
+        public static PageType fromString(String s) {
+            for (PageType b : PageType.values()) {
+                if (b.s.equalsIgnoreCase(s)) {
+                    return b;
+                }
+            }
+            return null;
+        }
     }
 }

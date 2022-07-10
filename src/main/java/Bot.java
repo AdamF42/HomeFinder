@@ -1,12 +1,11 @@
 import ch.qos.logback.classic.Logger;
-import config.models.Config;
 import config.ConfigHandler;
+import config.models.Config;
 import io.vavr.control.Try;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pages.Page;
 import pages.PageFactory;
@@ -15,6 +14,7 @@ import utils.interval.RandomInterval;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -25,28 +25,16 @@ class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Bot.class);
 
-    // TODO: really bad...
-    private static final Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig).get();
-
-    private static final List<Page> pages = List.of(
-            PageFactory.get(IMMOBILIARE, config.getWebsites().get("immobiliare").getUrl()),
-            PageFactory.get(SUBITO, config.getWebsites().get("subito").getUrl()),
-            PageFactory.get(IDEALISTA, config.getWebsites().get("idealista").getUrl()),
-            PageFactory.get(CASA, config.getWebsites().get("casa").getUrl())
-    );
-
-    private static final ExecutorService executor = Executors.newFixedThreadPool(pages.size());
+    private final Config config;
+    private final List<Page> pages;
+    private final ExecutorService executor;
 
     private List<RunnableImpl> runnables = new ArrayList<>();
 
-    public static void main(String[] args) {
-        logger.info("Bot started");
-        try {
-            TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-            telegramBotsApi.registerBot(new Bot());
-        } catch (TelegramApiException e) {
-            logger.error("Unable to register bot.", e);
-        }
+    public Bot(Config config, List<Page> pages, ExecutorService executor) {
+        this.config = config;
+        this.pages = pages;
+        this.executor = executor;
     }
 
     @Override
@@ -95,6 +83,30 @@ class Bot extends TelegramLongPollingBot {
             runnables.forEach(RunnableImpl::reloadPage);
         }
         runnables.forEach(runnable -> runnable.setShouldRun(true));
+    }
+
+    public static void main(String[] args) {
+        logger.info("Getting configuration");
+        Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
+                .onFailure(e -> logger.error("Unable to get config", e))
+                .get();
+
+        logger.info("Getting starting pages");
+        List<Page> pages = config.getWebsites().keySet().stream()
+                .map(k -> PageFactory.get(Objects.requireNonNull(fromString(k)), config.getWebsites().get(k).getUrl()))
+                .collect(Collectors.toList());
+
+        logger.info("Getting executor");
+        ExecutorService executor = Executors.newFixedThreadPool(pages.size());
+
+        logger.info("Getting Telegram Bot");
+
+
+        Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
+                .onFailure(e -> logger.error("Unable to get telegram api", e))
+                .andThenTry(api -> api.registerBot(new Bot(config, pages, executor)))
+                .onFailure(e -> logger.error("Unable to register telegram bot", e))
+                .onSuccess(res -> logger.info("Bot started"));
     }
 
 }
