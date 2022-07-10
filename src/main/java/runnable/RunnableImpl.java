@@ -83,12 +83,12 @@ public class RunnableImpl implements Runnable {
     }
 
     public void run() {
-        logger.debug("[FILES] {}", listFiles("./").toString());
+//        logger.debug("[FILES] {}", listFiles("./").toString());
         while (shouldRun) {
             try {
                 getAllLinks().stream()
                         .filter(RunnableImpl::isNew)
-                        .peek(e -> logger.debug("New link: {}", e))
+                        .peek(e -> logger.info("[NEW LINK] {}", e))
                         .map(RunnableImpl::save)
                         .filter(e -> !e.isEmpty())
                         .forEach(msg -> sendMsg(this.chatId, msg));
