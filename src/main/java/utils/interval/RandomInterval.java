@@ -1,4 +1,4 @@
-package utils;
+package utils.interval;
 
 public class RandomInterval implements TimeInterval {
 

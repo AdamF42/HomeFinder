@@ -7,7 +7,8 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pages.Page;
-import utils.RandomInterval;
+import utils.interval.RandomInterval;
+import utils.sleep.SleepUtil;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -94,12 +95,7 @@ public class RunnableImpl implements Runnable {
             } catch (Exception e) {
                 logger.error("Generic error", e);
             }
-
-            try {
-                Thread.sleep(interval.getInterval());
-            } catch (InterruptedException e) {
-                logger.error("Unable to sleep", e);
-            }
+            SleepUtil.sleep(interval.getInterval());
         }
     }
 
@@ -116,17 +112,17 @@ public class RunnableImpl implements Runnable {
 
     private List<String> getAllLinks() {
         Page cp = page.clone();
-        List<String> links = cp.getLinks();
-        while (cp.hasNextPage()) {
-            try {
-                Thread.sleep(navigationInterval.getInterval());
-            } catch (InterruptedException e) {
-                logger.error("Unable to sleep", e);
-            }
-            cp = cp.getNextPage();
-            links.addAll(cp.getLinks());
-        }
+        List<String> links = getAllLinks(new ArrayList<>(), cp);
         logger.debug("[PAGE] {} [LIST]: {}", page.getStartUrl(), links.size());
         return links;
+    }
+
+    private List<String> getAllLinks(List<String> links, final Page page) {
+        SleepUtil.sleep(navigationInterval.getInterval());
+        links.addAll(page.getLinks());
+        if (!page.hasNextPage()) {
+            return links;
+        }
+        return getAllLinks(links, page.getNextPage());
     }
 }

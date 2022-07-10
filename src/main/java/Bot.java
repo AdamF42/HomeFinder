@@ -1,4 +1,7 @@
 import ch.qos.logback.classic.Logger;
+import config.models.Config;
+import config.ConfigHandler;
+import io.vavr.control.Try;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -8,7 +11,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pages.Page;
 import pages.PageFactory;
 import runnable.RunnableImpl;
-import utils.RandomInterval;
+import utils.interval.RandomInterval;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,19 +25,16 @@ class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Bot.class);
 
-    private static final List<Long> userIds = List.of(55585460L);
-    private static final RandomInterval interval = new RandomInterval(20, 30);
-    private static final RandomInterval pageNavigationInterval = new RandomInterval(5, 10);
-    private static final int maxPrice = 900;
-    private static final int minPrice = 200;
-    private static final int roomNumber = 3;
+    // TODO: really bad...
+    private static final Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig).get();
 
-    private static final String immUrl = "https://www.immobiliare.it/affitto-case/bologna/?criterio=dataModifica&ordine=desc&prezzoMinimo=" + minPrice + "&prezzoMassimo=" + maxPrice + "&superficieMinima=60&localiMinimo=" + roomNumber + "&idMZona[]=17&idMZona[]=23&idMZona[]=31";
-    private static final String subitoUrl = "https://www.subito.it/annunci-emilia-romagna/affitto/appartamenti/bologna/bologna/?ps=" + minPrice + "&pe=" + maxPrice + "&rs=" + roomNumber;
-    private static final String idealistaUrl = "https://www.idealista.it/affitto-case/bologna-bologna/con-prezzo_" + maxPrice + ",prezzo-min_" + minPrice + ",trilocali-3,quadrilocali-4,5-locali-o-piu/?ordine=pubblicazione-desc";
-    private static final String casaUrl = "https://www.casa.it/srp/?tr=affitti&numRoomsMin=" + roomNumber + "&priceMin=" + minPrice + "&priceMax=" + maxPrice + "&propertyTypeGroup=case&q=12d65861%2C171c3cab%2C035cb1f0%2C853e62a4%2Cd2a360ef%2Cd80cd525";
+    private static final List<Page> pages = List.of(
+            PageFactory.get(IMMOBILIARE, config.getWebsites().get("immobiliare").getUrl()),
+            PageFactory.get(SUBITO, config.getWebsites().get("subito").getUrl()),
+            PageFactory.get(IDEALISTA, config.getWebsites().get("idealista").getUrl()),
+            PageFactory.get(CASA, config.getWebsites().get("casa").getUrl())
+    );
 
-    private static final List<Page> pages = List.of(PageFactory.get(IMMOBILIARE, immUrl), PageFactory.get(SUBITO, subitoUrl), PageFactory.get(IDEALISTA, idealistaUrl), PageFactory.get(CASA, casaUrl));
     private static final ExecutorService executor = Executors.newFixedThreadPool(pages.size());
 
     private List<RunnableImpl> runnables = new ArrayList<>();
@@ -56,11 +56,11 @@ class Bot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "565399062:AAHd-_CapBje_0Bq6sa_CGoLOYC8RcFDJVM";
+        return config.getTelegramToken();
     }
 
     public void onUpdateReceived(Update update) {
-        if (!userIds.contains(update.getMessage().getFrom().getId())) {
+        if (!config.getUserId().contains(update.getMessage().getFrom().getId())) {
             return;
         }
         String chatId = update.getMessage().getChatId().toString();
@@ -85,7 +85,11 @@ class Bot extends TelegramLongPollingBot {
 
     private void handleStart(String chatId) {
         if (runnables.isEmpty()) {
-            runnables = pages.stream().map(page -> new RunnableImpl(this, chatId, page, interval, pageNavigationInterval)).collect(Collectors.toList());
+            RandomInterval parsingInterval = new RandomInterval(config.getMinParsingInterval(), config.getMaxParsingInterval());
+            RandomInterval navigationInterval = new RandomInterval(config.getMinpageNavigationInterval(), config.getMaxpageNavigationInterval());
+            runnables = pages.stream()
+                    .map(page -> new RunnableImpl(this, chatId, page, parsingInterval, navigationInterval))
+                    .collect(Collectors.toList());
             runnables.forEach(executor::submit);
         } else {
             runnables.forEach(RunnableImpl::reloadPage);
