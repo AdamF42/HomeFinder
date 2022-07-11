@@ -5,7 +5,6 @@ import io.vavr.control.Try;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -17,12 +16,11 @@ import utils.interval.RandomInterval;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static pages.PageFactory.PageType.*;
+import static pages.PageFactory.PageType.fromString;
 
 class Bot extends TelegramLongPollingBot {
 
@@ -51,20 +49,19 @@ class Bot extends TelegramLongPollingBot {
     }
 
     public void onUpdateReceived(Update update) {
-        User user = Optional.ofNullable(update.getMessage()).map(Message::getFrom).orElse(new User());
-        if (!config.getUserId().contains(user.getId())) {
+        if (!isValid(update)) {
+            return;
+        }
+        User user = update.getMessage().getFrom();
+        String msg = update.getMessage().getText();
+        String chatId = String.valueOf(update.getMessage().getChatId());
+
+        logger.info("[MSG] {} [FROM] {}", msg, user.toString());
+
+        if(!config.getUserId().contains(user.getId())) {
             return;
         }
 
-        String chatId = Optional.ofNullable(update.getMessage()).map(Message::getChatId).map(Object::toString).orElse("");
-        if ("".equals(chatId)){
-            return;
-        }
-        String msg = Optional.ofNullable(update.getMessage()).map(Message::getText).orElse("");
-        if("".equals(msg)){
-            return;
-        }
-        logger.info("[MSG] {} [FROM] {}", msg, user.toString());
         switch (msg) {
             case "start":
                 handleStart(chatId);
@@ -74,6 +71,10 @@ class Bot extends TelegramLongPollingBot {
                 break;
             default:
         }
+    }
+
+    private boolean isValid(Update update) {
+        return !Objects.isNull(update.getMessage()) && !Objects.isNull(update.getMessage().getFrom());
     }
 
     private void handleStop() {
