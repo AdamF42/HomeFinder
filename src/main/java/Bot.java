@@ -5,8 +5,10 @@ import io.vavr.control.Try;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pages.Page;
 import pages.PageFactory;
@@ -69,7 +71,21 @@ class Bot extends TelegramLongPollingBot {
             case "stop":
                 handleStop();
                 break;
+            case "ping":
+                handlePing(chatId);
+                break;
             default:
+        }
+    }
+
+    private void handlePing(String chatId) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        sendMessage.setText("pong");
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            logger.error("Unable to send msg {}", "pong", e);
         }
     }
 
