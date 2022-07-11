@@ -13,6 +13,11 @@ public class Config {
     private Integer maxParsingInterval;
     private Integer minpageNavigationInterval;
     private Integer  maxpageNavigationInterval;
+    private String mongoDBCluster;
+    private String mongoDBUser;
+    private String mongoDBPass;
+    private String mongoDbDatabase;
+    private String mongoDbCollection;
 
     private Map<String, WebSite> websites = new HashMap<>();
 
@@ -70,5 +75,45 @@ public class Config {
 
     public void setWebsites(Map<String, WebSite> websites) {
         this.websites = websites;
+    }
+
+    public String getMongoDBCluster() {
+        return mongoDBCluster;
+    }
+
+    public void setMongoDBCluster(String mongoDBCluster) {
+        this.mongoDBCluster = mongoDBCluster;
+    }
+
+    public String getMongoDBUser() {
+        return mongoDBUser;
+    }
+
+    public void setMongoDBUser(String mongoDBUser) {
+        this.mongoDBUser = mongoDBUser;
+    }
+
+    public String getMongoDBPass() {
+        return mongoDBPass;
+    }
+
+    public void setMongoDBPass(String mongoDBPass) {
+        this.mongoDBPass = mongoDBPass;
+    }
+
+    public String getMongoDbDatabase() {
+        return mongoDbDatabase;
+    }
+
+    public void setMongoDbDatabase(String mongoDbDatabase) {
+        this.mongoDbDatabase = mongoDbDatabase;
+    }
+
+    public String getMongoDbCollection() {
+        return mongoDbCollection;
+    }
+
+    public void setMongoDbCollection(String mongoDbCollection) {
+        this.mongoDbCollection = mongoDbCollection;
     }
 }
