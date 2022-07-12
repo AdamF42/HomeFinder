@@ -1,7 +1,8 @@
 package runnable;
 
 import ch.qos.logback.classic.Logger;
-import io.vavr.control.Try;
+import config.models.House;
+import data.HouseRepository;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,68 +11,37 @@ import pages.Page;
 import utils.interval.RandomInterval;
 import utils.sleep.SleepUtil;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RunnableImpl implements Runnable {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(RunnableImpl.class);
-    private static final String dataFile = Paths.get("./data.txt").toString();
+
     private final RandomInterval interval;
     private final RandomInterval navigationInterval;
     private final String chatId;
     private Page page;
+    private final HouseRepository houseRepository;
     private final TelegramLongPollingBot bot;
     private boolean shouldRun = true;
 
-    public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, RandomInterval interval, RandomInterval navigationInterval) {
+    public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, HouseRepository houseRepository, RandomInterval interval, RandomInterval navigationInterval) {
         this.chatId = chatId;
         this.bot = bot;
         this.page = page;
         this.interval = interval;
         this.navigationInterval = navigationInterval;
+        this.houseRepository = houseRepository;
     }
 
-    private static String save(String str) {
-        return Try.ofCallable(writeString(str)).getOrElse("");
-    }
-
-    private static Callable<String> writeString(String str) {
-        return () -> {
-            FileWriter writer = new FileWriter(dataFile, true);
-            writer.write(str + System.lineSeparator());
-            writer.close();
-            return str;
-        };
-    }
-
-    public Set<String> listFiles(String dir) {
-        return Stream.of(Objects.requireNonNull(new File(dir).listFiles()))
-                .filter(file -> !file.isDirectory())
-                .map(File::getAbsolutePath)
-                .collect(Collectors.toSet());
-    }
-
-    private static boolean isNew(String s) {
-
-        List<String> result = new ArrayList<>();
-        try (Stream<String> lines = Files.lines(Paths.get(dataFile))) {
-            result = lines.collect(Collectors.toList());
-        } catch (IOException e) {
-            logger.error("Unable to read file", e);
-        }
-
-        return !result.contains(s);
+    private House toHouse(String str) {
+        House house = new House();
+        house.setLink(str);
+        house.setTimestamp(LocalDateTime.now());
+        return house;
     }
 
     public void reloadPage() {
@@ -83,15 +53,18 @@ public class RunnableImpl implements Runnable {
     }
 
     public void run() {
-//        logger.debug("[FILES] {}", listFiles("./").toString());
         while (shouldRun) {
+            List<String> houses = houseRepository.getHouses().stream().map(House::getLink).collect(Collectors.toList());
             try {
-                getAllLinks().stream()
-                        .filter(RunnableImpl::isNew)
+                List<House> newHouses = getAllLinks().stream()
+                        .filter(link -> !houses.contains(link))
                         .peek(e -> logger.info("[NEW LINK] {}", e))
-                        .map(RunnableImpl::save)
-                        .filter(e -> !e.isEmpty())
-                        .forEach(msg -> sendMsg(this.chatId, msg));
+                        .map(this::toHouse).collect(Collectors.toList());
+
+                houseRepository.saveHouses(newHouses);
+
+                newHouses.forEach(house -> sendMsg(this.chatId, house.getLink()));
+
             } catch (Exception e) {
                 logger.error("Generic error", e);
             }
