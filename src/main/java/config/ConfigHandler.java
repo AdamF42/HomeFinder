@@ -1,6 +1,6 @@
 package config;
 
-import config.models.Config;
+import config.models.ConfigYaml;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.FileInputStream;
@@ -16,7 +16,7 @@ public class ConfigHandler {
 
     private static ConfigHandler configHandler;
 
-    Config config;
+    ConfigYaml config;
 
     /**
      * Get instance of ConfigHandler
@@ -54,8 +54,8 @@ public class ConfigHandler {
      * @param configPath
      * @throws FileNotFoundException
      */
-    public Config loadConfig(Path configPath) throws FileNotFoundException {
-        Constructor constructor = new Constructor(Config.class);
+    public ConfigYaml loadConfig(Path configPath) throws FileNotFoundException {
+        Constructor constructor = new Constructor(ConfigYaml.class);
         Yaml yaml = new Yaml(constructor);
         return yaml.load(new FileInputStream(configPath.toFile()));
     }
@@ -89,13 +89,13 @@ public class ConfigHandler {
      * Get config object
      * @return
      */
-    public Config getConfig() {
+    public ConfigYaml getConfig() {
         return this.config;
     }
 
     public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
         ConfigHandler handler = ConfigHandler.getInstance();
-        Config config = handler.getConfig();
+        ConfigYaml config = handler.getConfig();
         System.out.println("TELEGRAM: "+config.getTelegramToken());
         System.out.println("USER: "+config.getUserId());
         System.out.println("IMMOBILIARE: "+ config.getWebsites().get("immobiliare").getUrl());

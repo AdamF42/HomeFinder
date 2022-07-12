@@ -1,6 +1,6 @@
 package data;
 
-import config.models.House;
+import data.pojo.House;
 
 import java.util.List;
 

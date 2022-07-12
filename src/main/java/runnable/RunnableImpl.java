@@ -1,7 +1,7 @@
 package runnable;
 
 import ch.qos.logback.classic.Logger;
-import config.models.House;
+import data.pojo.House;
 import data.HouseRepository;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
