@@ -28,4 +28,14 @@ public class NotSupported implements Page {
     public Page clone() {
         return this;
     }
+
+    @Override
+    public Long getParsingInterval() {
+        return 0L;
+    }
+
+    @Override
+    public Long getNavigationInterval() {
+        return 0L;
+    }
 }

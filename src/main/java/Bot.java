@@ -42,14 +42,14 @@ class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Bot.class);
 
-    private final ConfigYaml config;
+    private final Config config;
     private final List<Page> pages;
     private final ExecutorService executor;
     private final HouseRepository houseRepository;
 
     private List<RunnableImpl> runnables = new ArrayList<>();
 
-    public Bot(ConfigYaml config, List<Page> pages, HouseRepository houseRepository, ExecutorService executor) {
+    public Bot(Config config, List<Page> pages, HouseRepository houseRepository, ExecutorService executor) {
         this.config = config;
         this.pages = pages;
         this.executor = executor;
@@ -117,10 +117,10 @@ class Bot extends TelegramLongPollingBot {
 
     private void handleStart(String chatId) {
         if (runnables.isEmpty()) {
-            RandomInterval parsingInterval = new RandomInterval(config.getMinParsingInterval(), config.getMaxParsingInterval());
-            RandomInterval navigationInterval = new RandomInterval(config.getMinpageNavigationInterval(), config.getMaxpageNavigationInterval());
+//            RandomInterval parsingInterval = new RandomInterval(config.getMinParsingInterval(), config.getMaxParsingInterval());
+//            RandomInterval navigationInterval = new RandomInterval(config.getMinpageNavigationInterval(), config.getMaxpageNavigationInterval());
             runnables = pages.stream()
-                    .map(page -> new RunnableImpl(this, chatId, page, houseRepository, parsingInterval, navigationInterval))
+                    .map(page -> new RunnableImpl(this, chatId, page, houseRepository))
                     .collect(Collectors.toList());
             runnables.forEach(executor::submit);
         } else {
@@ -132,11 +132,11 @@ class Bot extends TelegramLongPollingBot {
     public static void main(String[] args) {
 
         logger.info("Getting configuration");
-        ConfigYaml config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
+        ConfigYaml oldConfig = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
                 .onFailure(e -> logger.error("Unable to get config", e))
                 .get();
         logger.info("Getting mongoDb");
-        String string = "mongodb+srv://" + config.getMongoDbDatabase() + ":" + config.getMongoDBPass() + "@" + config.getMongoDBCluster() + ".3vyhn.mongodb.net/?retryWrites=true&w=majority";
+        String string = "mongodb+srv://" + oldConfig.getMongoDbDatabase() + ":" + oldConfig.getMongoDBPass() + "@" + oldConfig.getMongoDBCluster() + ".3vyhn.mongodb.net/?retryWrites=true&w=majority";
         ConnectionString connectionString = new ConnectionString(string);
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
@@ -147,7 +147,7 @@ class Bot extends TelegramLongPollingBot {
 
 
         MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
-                .map(mc -> mc.getDatabase(config.getMongoDbDatabase()))
+                .map(mc -> mc.getDatabase(oldConfig.getMongoDbDatabase()))
                 .onFailure(e -> logger.error("Unable to get database", e))
                 .get();
 
@@ -161,7 +161,7 @@ class Bot extends TelegramLongPollingBot {
 
         Config newConf = configRepository.getConfig();
         List<Page> pages = newConf.getWebsites().stream()
-                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w.getUrl()))
+                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
                 .collect(Collectors.toList());
 
 //        List<Page> pages = config.getWebsites().keySet().stream()
@@ -176,7 +176,7 @@ class Bot extends TelegramLongPollingBot {
 
         Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
                 .onFailure(e -> logger.error("Unable to get telegram api", e))
-                .andThenTry(api -> api.registerBot(new Bot(config, pages, houseRepository, executor)))
+                .andThenTry(api -> api.registerBot(new Bot(newConf, pages, houseRepository, executor)))
                 .onFailure(e -> logger.error("Unable to register telegram bot", e))
                 .onSuccess(res -> logger.info("Bot started"));
     }

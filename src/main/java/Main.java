@@ -14,49 +14,49 @@ public class Main {
 //    private static final String url = "https://www.casa.it/srp/?tr=affitti&numRoomsMin=3&priceMax=5000&propertyTypeGroup=case&q=12d65861,171c3cab,035cb1f0,853e62a4,d2a360ef,d80cd525";
 
 
-    public static void main(String[] args) {
+//    public static void main(String[] args) {
+//
+//        List<String> links = getAllLinks();
+//
+//        System.out.println(links.size());
+////        System.out.println(getAllLinksR().size());
+//    }
 
-        List<String> links = getAllLinks();
-
-        System.out.println(links.size());
-        System.out.println(getAllLinksR().size());
-    }
-
-    private static List<String> getAllLinks() {
-
-//        Page page = new Casa(url);
-//        Page page = new Subito(url);
-        Page page = new Immobiliare(url);
-        List<String> links = page.getLinks();
-        int num = 0;
-        while (page.hasNextPage()) {
-            System.out.println(num);
-            SleepUtil.sleep(1000);
-            page = page.getNextPage();
-            List<String> test = page.getLinks();
-            links.addAll(test);
-            num = num + 1;
-        }
-        return links;
-    }
-
-    private static List<String> getAllLinksR() {
+//    private static List<String> getAllLinks() {
 
 //        Page page = new Casa(url);
 //        Page page = new Subito(url);
-        Page page = new Immobiliare(url);
-        return getAllLinks(new ArrayList<>(), page, 0);
-    }
+//        Page page = new Immobiliare(url);
+//        List<String> links = page.getLinks();
+//        int num = 0;
+//        while (page.hasNextPage()) {
+//            System.out.println(num);
+//            SleepUtil.sleep(1000);
+//            page = page.getNextPage();
+//            List<String> test = page.getLinks();
+//            links.addAll(test);
+//            num = num + 1;
+//        }
+//        return links;
+//    }
+
+//    private static List<String> getAllLinksR() {
+//
+////        Page page = new Casa(url);
+////        Page page = new Subito(url);
+//        Page page = new Immobiliare(url);
+//        return getAllLinks(new ArrayList<>(), page, 0);
+//    }
 
 
-    private static List<String> getAllLinks(List<String> links, final Page page, final int num) {
-        SleepUtil.sleep(1000);
-        links.addAll(page.getLinks());
-        if (!page.hasNextPage()) {
-            return links;
-        }
-        return getAllLinks(links, page.getNextPage(), num + 1);
-    }
+//    private static List<String> getAllLinks(List<String> links, final Page page, final int num) {
+//        SleepUtil.sleep(1000);
+//        links.addAll(page.getLinks());
+//        if (!page.hasNextPage()) {
+//            return links;
+//        }
+//        return getAllLinks(links, page.getNextPage(), num + 1);
+//    }
 
 
 }

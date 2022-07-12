@@ -1,12 +1,12 @@
 package pages;
 
 import ch.qos.logback.classic.Logger;
-
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
+import utils.interval.RandomInterval;
 
 import java.io.IOException;
 import java.util.List;
@@ -14,15 +14,19 @@ import java.util.stream.Collectors;
 
 public class Idealista implements Page {
 
-    private static final String baseUrl = "https://www.idealista.it";
+    private static final Logger logger = (Logger) LoggerFactory.getLogger(Idealista.class);
     private final Document document;
     private final String startUrl;
+    private final RandomInterval interval;
+    private final RandomInterval navigationInterval;
+    private final String baseUrl;
 
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(Idealista.class);
-
-    public Idealista(String url) {
-        document = getDocument(url);
-        startUrl = url;
+    public Idealista(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval) {
+        this.interval = interval;
+        this.navigationInterval = navigationInterval;
+        this.document = getDocument(url);
+        this.startUrl = url;
+        this.baseUrl = baseUrl;
     }
 
     private static Document getDocument(String url) {
@@ -66,7 +70,7 @@ public class Idealista implements Page {
         String url = elements.stream()
                 .map(e -> e.attributes().get("href")) //
                 .findFirst().orElseThrow();
-        return new Idealista(baseUrl + url);
+        return new Idealista(baseUrl + url, baseUrl, interval, navigationInterval);
     }
 
     @Override
@@ -76,6 +80,16 @@ public class Idealista implements Page {
 
     @Override
     public Idealista clone() {
-        return new Idealista(document.location());
+        return new Idealista(document.location(), baseUrl, interval, navigationInterval);
+    }
+
+    @Override
+    public Long getParsingInterval() {
+        return this.interval.getInterval();
+    }
+
+    @Override
+    public Long getNavigationInterval() {
+        return this.navigationInterval.getInterval();
     }
 }
