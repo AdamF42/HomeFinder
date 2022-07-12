@@ -4,7 +4,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertManyOptions;
 import config.ConfigHandler;
-import config.models.Config;
+import config.models.ConfigYaml;
 import io.vavr.control.Try;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -18,7 +18,7 @@ public class Mongo {
 
     public static void main(String[] args) {
 
-        Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
+        ConfigYaml config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
                 .get();
 
         String connectionString = "mongodb+srv://" + config.getMongoDbDatabase() + ":" + config.getMongoDBPass() + "@housefindercluster.3vyhn.mongodb.net/?retryWrites=true&w=majority";

@@ -1,16 +1,16 @@
 package data;
 
 import com.mongodb.client.MongoCollection;
-import config.models.House;
+import data.pojo.House;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class HouseRepositoryImpl implements HouseRepository {
+public class HouseRepositoryMongo implements HouseRepository {
 
     MongoCollection<House> collection;
 
-    public HouseRepositoryImpl(MongoCollection<House> collection) {
+    public HouseRepositoryMongo(MongoCollection<House> collection) {
         this.collection = collection;
     }
 

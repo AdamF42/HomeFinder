@@ -5,10 +5,12 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import config.ConfigHandler;
-import config.models.Config;
-import config.models.House;
+import config.ConfigRepository;
+import config.models.ConfigYaml;
+import config.pojo.Config;
+import data.pojo.House;
 import data.HouseRepository;
-import data.HouseRepositoryImpl;
+import data.HouseRepositoryMongo;
 import io.vavr.control.Try;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -32,22 +34,22 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static core.WebSiteType.fromString;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
-import static pages.PageFactory.PageType.fromString;
 
 class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Bot.class);
 
-    private final Config config;
+    private final ConfigYaml config;
     private final List<Page> pages;
     private final ExecutorService executor;
     private final HouseRepository houseRepository;
 
     private List<RunnableImpl> runnables = new ArrayList<>();
 
-    public Bot(Config config, List<Page> pages, HouseRepository houseRepository, ExecutorService executor) {
+    public Bot(ConfigYaml config, List<Page> pages, HouseRepository houseRepository, ExecutorService executor) {
         this.config = config;
         this.pages = pages;
         this.executor = executor;
@@ -130,7 +132,7 @@ class Bot extends TelegramLongPollingBot {
     public static void main(String[] args) {
 
         logger.info("Getting configuration");
-        Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
+        ConfigYaml config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
                 .onFailure(e -> logger.error("Unable to get config", e))
                 .get();
         logger.info("Getting mongoDb");
@@ -150,13 +152,21 @@ class Bot extends TelegramLongPollingBot {
                 .get();
 
         MongoCollection<House> collection = database.getCollection("links", House.class);
+        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
 
-        HouseRepository houseRepository = new HouseRepositoryImpl(collection);
+        HouseRepository houseRepository = new HouseRepositoryMongo(collection);
+        ConfigRepository configRepository = new ConfigRepository(configCollection);
 
         logger.info("Getting starting pages");
-        List<Page> pages = config.getWebsites().keySet().stream()
-                .map(k -> PageFactory.get(Objects.requireNonNull(fromString(k)), config.getWebsites().get(k).getUrl()))
+
+        Config newConf = configRepository.getConfig();
+        List<Page> pages = newConf.getWebsites().stream()
+                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w.getUrl()))
                 .collect(Collectors.toList());
+
+//        List<Page> pages = config.getWebsites().keySet().stream()
+//                .map(k -> PageFactory.get(Objects.requireNonNull(fromString(k)), config.getWebsites().get(k).getUrl()))
+//                .collect(Collectors.toList());
 
         logger.info("Getting executor");
         ExecutorService executor = Executors.newFixedThreadPool(pages.size());

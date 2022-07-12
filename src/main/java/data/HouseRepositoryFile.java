@@ -1,7 +1,7 @@
 package data;
 
 import ch.qos.logback.classic.Logger;
-import config.models.House;
+import data.pojo.House;
 import io.vavr.control.Try;
 import org.slf4j.LoggerFactory;
 
