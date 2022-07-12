@@ -39,6 +39,9 @@ public class Mongo {
 
             linkList.forEach(System.out::println);
 
+
+
+
 //            gradesCollection.drop();
 
         }

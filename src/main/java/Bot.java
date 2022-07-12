@@ -1,7 +1,17 @@
 import ch.qos.logback.classic.Logger;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import config.ConfigHandler;
 import config.models.Config;
+import config.models.House;
+import data.HouseRepository;
+import data.HouseRepositoryImpl;
 import io.vavr.control.Try;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -22,6 +32,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 import static pages.PageFactory.PageType.fromString;
 
 class Bot extends TelegramLongPollingBot {
@@ -31,13 +43,15 @@ class Bot extends TelegramLongPollingBot {
     private final Config config;
     private final List<Page> pages;
     private final ExecutorService executor;
+    private final HouseRepository houseRepository;
 
     private List<RunnableImpl> runnables = new ArrayList<>();
 
-    public Bot(Config config, List<Page> pages, ExecutorService executor) {
+    public Bot(Config config, List<Page> pages, HouseRepository houseRepository, ExecutorService executor) {
         this.config = config;
         this.pages = pages;
         this.executor = executor;
+        this.houseRepository = houseRepository;
     }
 
     @Override
@@ -60,7 +74,7 @@ class Bot extends TelegramLongPollingBot {
 
         logger.info("[MSG] {} [FROM] {}", msg, user.toString());
 
-        if(!config.getUserId().contains(user.getId())) {
+        if (!config.getUserId().contains(user.getId())) {
             return;
         }
 
@@ -104,7 +118,7 @@ class Bot extends TelegramLongPollingBot {
             RandomInterval parsingInterval = new RandomInterval(config.getMinParsingInterval(), config.getMaxParsingInterval());
             RandomInterval navigationInterval = new RandomInterval(config.getMinpageNavigationInterval(), config.getMaxpageNavigationInterval());
             runnables = pages.stream()
-                    .map(page -> new RunnableImpl(this, chatId, page, parsingInterval, navigationInterval))
+                    .map(page -> new RunnableImpl(this, chatId, page, houseRepository, parsingInterval, navigationInterval))
                     .collect(Collectors.toList());
             runnables.forEach(executor::submit);
         } else {
@@ -114,10 +128,30 @@ class Bot extends TelegramLongPollingBot {
     }
 
     public static void main(String[] args) {
+
         logger.info("Getting configuration");
         Config config = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
                 .onFailure(e -> logger.error("Unable to get config", e))
                 .get();
+        logger.info("Getting mongoDb");
+        String string = "mongodb+srv://" + config.getMongoDbDatabase() + ":" + config.getMongoDBPass() + "@" + config.getMongoDBCluster() + ".3vyhn.mongodb.net/?retryWrites=true&w=majority";
+        ConnectionString connectionString = new ConnectionString(string);
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+        MongoClientSettings clientSettings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .codecRegistry(codecRegistry)
+                .build();
+
+
+        MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
+                .map(mc -> mc.getDatabase(config.getMongoDbDatabase()))
+                .onFailure(e -> logger.error("Unable to get database", e))
+                .get();
+
+        MongoCollection<House> collection = database.getCollection("links", House.class);
+
+        HouseRepository houseRepository = new HouseRepositoryImpl(collection);
 
         logger.info("Getting starting pages");
         List<Page> pages = config.getWebsites().keySet().stream()
@@ -132,7 +166,7 @@ class Bot extends TelegramLongPollingBot {
 
         Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
                 .onFailure(e -> logger.error("Unable to get telegram api", e))
-                .andThenTry(api -> api.registerBot(new Bot(config, pages, executor)))
+                .andThenTry(api -> api.registerBot(new Bot(config, pages, houseRepository, executor)))
                 .onFailure(e -> logger.error("Unable to register telegram bot", e))
                 .onSuccess(res -> logger.info("Bot started"));
     }
