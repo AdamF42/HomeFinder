@@ -6,6 +6,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import utils.interval.RandomInterval;
 
 import java.io.IOException;
 import java.util.List;
@@ -13,15 +14,19 @@ import java.util.stream.Collectors;
 
 public class Subito implements Page, Cloneable {
 
-    private static final String baseUrl = "https://www.subito.it";
-    private final String startUrl;
-    private final Document document;
-
     private static final Logger logger = LoggerFactory.getLogger(Subito.class);
+    private final Document document;
+    private final String startUrl;
+    private final RandomInterval interval;
+    private final RandomInterval navigationInterval;
+    private final String baseUrl;
 
-    public Subito(String url) {
-        startUrl = url;
-        document = getDocument(url);
+    public Subito(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval) {
+        this.interval = interval;
+        this.navigationInterval = navigationInterval;
+        this.document = getDocument(url);
+        this.startUrl = url;
+        this.baseUrl = baseUrl;
     }
 
     private static Document getDocument(String url) {
@@ -55,7 +60,7 @@ public class Subito implements Page, Cloneable {
         List<String> arrowLinks = elements.stream().map(e -> e.attributes().get("href")).collect(Collectors.toList());
         String url = arrowLinks.get(arrowLinks.size() - 1);
 
-        return new Subito(baseUrl + url);
+        return new Subito(baseUrl + url, baseUrl, interval, navigationInterval);
     }
 
     @Override
@@ -65,6 +70,16 @@ public class Subito implements Page, Cloneable {
 
     @Override
     public Subito clone() {
-        return new Subito(document.location());
+        return new Subito(document.location(), baseUrl, interval, navigationInterval);
+    }
+
+    @Override
+    public Long getParsingInterval() {
+        return this.interval.getInterval();
+    }
+
+    @Override
+    public Long getNavigationInterval() {
+        return this.navigationInterval.getInterval();
     }
 }

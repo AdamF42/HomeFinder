@@ -8,7 +8,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pages.Page;
-import utils.interval.RandomInterval;
 import utils.sleep.SleepUtil;
 
 import java.time.LocalDateTime;
@@ -20,20 +19,16 @@ public class RunnableImpl implements Runnable {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(RunnableImpl.class);
 
-    private final RandomInterval interval;
-    private final RandomInterval navigationInterval;
     private final String chatId;
     private Page page;
     private final HouseRepository houseRepository;
     private final TelegramLongPollingBot bot;
     private boolean shouldRun = true;
 
-    public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, HouseRepository houseRepository, RandomInterval interval, RandomInterval navigationInterval) {
+    public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, HouseRepository houseRepository) {
         this.chatId = chatId;
         this.bot = bot;
         this.page = page;
-        this.interval = interval;
-        this.navigationInterval = navigationInterval;
         this.houseRepository = houseRepository;
     }
 
@@ -68,7 +63,7 @@ public class RunnableImpl implements Runnable {
             } catch (Exception e) {
                 logger.error("Generic error", e);
             }
-            SleepUtil.sleep(interval.getInterval());
+            SleepUtil.sleep(page.getParsingInterval());
         }
     }
 
@@ -91,7 +86,7 @@ public class RunnableImpl implements Runnable {
     }
 
     private List<String> getAllLinks(List<String> links, final Page page) {
-        SleepUtil.sleep(navigationInterval.getInterval());
+        SleepUtil.sleep(page.getNavigationInterval());
         links.addAll(page.getLinks());
         if (!page.hasNextPage()) {
             return links;

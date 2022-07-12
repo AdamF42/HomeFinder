@@ -18,4 +18,8 @@ public interface Page extends Cloneable {
     String getStartUrl();
 
     Page clone();
+
+    Long getParsingInterval();
+
+    Long getNavigationInterval();
 }
