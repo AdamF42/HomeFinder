@@ -4,9 +4,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import config.ConfigHandler;
 import config.ConfigRepository;
-import config.models.ConfigYaml;
 import config.pojo.Config;
 import data.HouseRepository;
 import data.HouseRepositoryMongo;
@@ -40,6 +38,8 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 class Bot extends TelegramLongPollingBot {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Bot.class);
+    private static final String MONGO_CONN_STR = "MONGO_CONN_STR";
+    private static final String MONGO_DATABASE = "MONGO_DATABASE";
 
     private final Config config;
     private final List<Page> pages;
@@ -116,8 +116,6 @@ class Bot extends TelegramLongPollingBot {
 
     private void handleStart(String chatId) {
         if (runnables.isEmpty()) {
-//            RandomInterval parsingInterval = new RandomInterval(config.getMinParsingInterval(), config.getMaxParsingInterval());
-//            RandomInterval navigationInterval = new RandomInterval(config.getMinpageNavigationInterval(), config.getMaxpageNavigationInterval());
             runnables = pages.stream()
                     .map(page -> new RunnableImpl(this, chatId, page, houseRepository))
                     .collect(Collectors.toList());
@@ -130,13 +128,8 @@ class Bot extends TelegramLongPollingBot {
 
     public static void main(String[] args) {
 
-        logger.info("Getting configuration");
-        ConfigYaml oldConfig = Try.of(ConfigHandler::getInstance).map(ConfigHandler::getConfig)
-                .onFailure(e -> logger.error("Unable to get config", e))
-                .get();
-        logger.info("Getting mongoDb");
-        String string = "mongodb+srv://" + oldConfig.getMongoDbDatabase() + ":" + oldConfig.getMongoDBPass() + "@" + oldConfig.getMongoDBCluster() + ".3vyhn.mongodb.net/?retryWrites=true&w=majority";
-        ConnectionString connectionString = new ConnectionString(string);
+        logger.info("Connecting to MongoDB");
+        ConnectionString connectionString = new ConnectionString(System.getenv(MONGO_CONN_STR));
         CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
         CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
         MongoClientSettings clientSettings = MongoClientSettings.builder()
@@ -144,35 +137,31 @@ class Bot extends TelegramLongPollingBot {
                 .codecRegistry(codecRegistry)
                 .build();
 
-
+        String mongoDataBase = System.getenv(MONGO_DATABASE);
+        logger.info("Getting MongoDB database {}", mongoDataBase);
         MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
-                .map(mc -> mc.getDatabase(oldConfig.getMongoDbDatabase()))
+                .map(mc -> mc.getDatabase(mongoDataBase))
                 .onFailure(e -> logger.error("Unable to get database", e))
                 .get();
 
+        logger.info("Getting House collection");
         MongoCollection<House> collection = database.getCollection("links", House.class);
-        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
-
         HouseRepository houseRepository = new HouseRepositoryMongo(collection);
+
+        logger.info("Getting Config collection");
+        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
         ConfigRepository configRepository = new ConfigRepository(configCollection);
 
         logger.info("Getting starting pages");
-
         Config newConf = configRepository.getConfig();
         List<Page> pages = newConf.getWebsites().stream()
                 .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
                 .collect(Collectors.toList());
 
-//        List<Page> pages = config.getWebsites().keySet().stream()
-//                .map(k -> PageFactory.get(Objects.requireNonNull(fromString(k)), config.getWebsites().get(k).getUrl()))
-//                .collect(Collectors.toList());
-
-        logger.info("Getting executor");
+        logger.info("Getting executors");
         ExecutorService executor = Executors.newFixedThreadPool(pages.size());
 
         logger.info("Getting Telegram Bot");
-
-
         Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
                 .onFailure(e -> logger.error("Unable to get telegram api", e))
                 .andThenTry(api -> api.registerBot(new Bot(newConf, pages, houseRepository, executor)))
