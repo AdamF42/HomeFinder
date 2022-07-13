@@ -2,3 +2,4 @@
 data.txt
 target/*
 logs.log
+.env
