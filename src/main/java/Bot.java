@@ -73,7 +73,7 @@ class Bot extends TelegramLongPollingBot {
         String msg = update.getMessage().getText();
         String chatId = String.valueOf(update.getMessage().getChatId());
 
-        logger.info("[MSG] {} [FROM] {}", msg, user.toString());
+        logger.info("[MSG] {} ", msg);
 
         if (!config.getUserId().contains(user.getId())) {
             return;
