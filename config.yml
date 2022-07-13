@@ -1,8 +1,13 @@
-maxParsingInterval: 30
-minParsingInterval: 20
+maxParsingInterval: 600
+minParsingInterval: 300
 maxpageNavigationInterval: 10
 minpageNavigationInterval: 5
-telegramToken: TOKEN
+telegramToken: 565399062:AAHd-_CapBje_0Bq6sa_CGoLOYC8RcFDJVM
+mongoDBCluster: HouseFinderCluster
+mongoDBUser: housefinder
+mongoDBPass: byZLg7sv5cQFVUlr
+mongoDbDatabase: housefinder
+mongoDbCollection: links
 userId:
 - 123456
 websites:

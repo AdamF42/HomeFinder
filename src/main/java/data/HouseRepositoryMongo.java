@@ -27,6 +27,8 @@ public class HouseRepositoryMongo implements HouseRepository {
 
     @Override
     public void saveHouses(List<House> houses) {
-        collection.insertMany(houses);
+        if (houses != null && !houses.isEmpty()) {
+            collection.insertMany(houses);
+        }
     }
 }

@@ -69,6 +69,11 @@ public class Subito implements Page, Cloneable {
     }
 
     @Override
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    @Override
     public Subito clone() {
         return new Subito(document.location(), baseUrl, interval, navigationInterval);
     }

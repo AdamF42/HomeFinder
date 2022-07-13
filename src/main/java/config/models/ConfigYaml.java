@@ -12,7 +12,7 @@ public class ConfigYaml {
     private Integer minParsingInterval;
     private Integer maxParsingInterval;
     private Integer minpageNavigationInterval;
-    private Integer  maxpageNavigationInterval;
+    private Integer maxpageNavigationInterval;
     private String mongoDBCluster;
     private String mongoDBUser;
     private String mongoDBPass;

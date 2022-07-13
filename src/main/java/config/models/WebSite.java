@@ -2,9 +2,9 @@ package config.models;
 
 public class WebSite {
     private String url;
-    private Integer  maxPrice;
-    private Integer  minPrice;
-    private Integer  roomNumber;
+    private Integer maxPrice;
+    private Integer minPrice;
+    private Integer roomNumber;
 
     public Integer getMaxPrice() {
         return maxPrice;

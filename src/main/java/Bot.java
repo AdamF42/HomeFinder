@@ -8,9 +8,9 @@ import config.ConfigHandler;
 import config.ConfigRepository;
 import config.models.ConfigYaml;
 import config.pojo.Config;
-import data.pojo.House;
 import data.HouseRepository;
 import data.HouseRepositoryMongo;
+import data.pojo.House;
 import io.vavr.control.Try;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -25,7 +25,6 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 import pages.Page;
 import pages.PageFactory;
 import runnable.RunnableImpl;
-import utils.interval.RandomInterval;
 
 import java.util.ArrayList;
 import java.util.List;

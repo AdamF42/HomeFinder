@@ -2,6 +2,7 @@ package config;
 
 import config.models.ConfigYaml;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.Constructor;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -9,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.yaml.snakeyaml.constructor.Constructor;
 public class ConfigHandler {
 
     public static final Path configPath = Paths.get("./config.yml");
@@ -20,6 +20,7 @@ public class ConfigHandler {
 
     /**
      * Get instance of ConfigHandler
+     *
      * @return
      * @throws FileNotFoundException
      */
@@ -29,12 +30,13 @@ public class ConfigHandler {
 
     /**
      * Get instance of ConfigHandler
+     *
      * @param configPath
      * @return
      * @throws FileNotFoundException
      */
     public static ConfigHandler getInstance(Path configPath) throws FileNotFoundException {
-        if(configHandler == null) {
+        if (configHandler == null) {
             configHandler = new ConfigHandler(configPath);
         }
         return configHandler;
@@ -42,6 +44,7 @@ public class ConfigHandler {
 
     /**
      * Constructor
+     *
      * @param configPath
      * @throws FileNotFoundException
      */
@@ -51,6 +54,7 @@ public class ConfigHandler {
 
     /**
      * Load config.yml
+     *
      * @param configPath
      * @throws FileNotFoundException
      */
@@ -87,6 +91,7 @@ public class ConfigHandler {
 
     /**
      * Get config object
+     *
      * @return
      */
     public ConfigYaml getConfig() {
@@ -96,9 +101,9 @@ public class ConfigHandler {
     public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, IOException, NoSuchFieldException, SecurityException {
         ConfigHandler handler = ConfigHandler.getInstance();
         ConfigYaml config = handler.getConfig();
-        System.out.println("TELEGRAM: "+config.getTelegramToken());
-        System.out.println("USER: "+config.getUserId());
-        System.out.println("IMMOBILIARE: "+ config.getWebsites().get("immobiliare").getUrl());
+        System.out.println("TELEGRAM: " + config.getTelegramToken());
+        System.out.println("USER: " + config.getUserId());
+        System.out.println("IMMOBILIARE: " + config.getWebsites().get("immobiliare").getUrl());
 //        handler.dumpConfig();
 
     }
