@@ -30,6 +30,11 @@ public class NotSupported implements Page {
     }
 
     @Override
+    public String getName() {
+        return "";
+    }
+
+    @Override
     public Page clone() {
         return this;
     }

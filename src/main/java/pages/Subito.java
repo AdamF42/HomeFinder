@@ -1,5 +1,6 @@
 package pages;
 
+import core.WebSiteType;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -71,6 +72,11 @@ public class Subito implements Page, Cloneable {
     @Override
     public String getBaseUrl() {
         return this.baseUrl;
+    }
+
+    @Override
+    public String getName() {
+        return WebSiteType.SUBITO.toString();
     }
 
     @Override

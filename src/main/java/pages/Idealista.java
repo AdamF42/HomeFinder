@@ -1,6 +1,7 @@
 package pages;
 
 import ch.qos.logback.classic.Logger;
+import core.WebSiteType;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -81,6 +82,11 @@ public class Idealista implements Page {
     @Override
     public String getBaseUrl() {
         return this.baseUrl;
+    }
+
+    @Override
+    public String getName() {
+        return WebSiteType.IDEALISTA.toString();
     }
 
     @Override

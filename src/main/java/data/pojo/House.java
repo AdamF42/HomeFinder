@@ -12,6 +12,9 @@ public class House {
     @BsonProperty(value = "link")
     private String link;
 
+    @BsonProperty(value = "website")
+    private String website;
+
     @BsonProperty(value = "timestamp")
     private LocalDateTime timestamp;
 
@@ -45,6 +48,14 @@ public class House {
         this.timestamp = timestamp;
     }
 
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -52,6 +63,7 @@ public class House {
         House house = (House) o;
         return getId().equals(house.getId()) && getLink().equals(house.getLink()) && getTimestamp().equals(house.getTimestamp());
     }
+
 
     @Override
     public int hashCode() {

@@ -1,5 +1,6 @@
 package pages;
 
+import core.WebSiteType;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -73,6 +74,11 @@ public class Casa implements Page {
     @Override
     public String getBaseUrl() {
         return this.baseUrl;
+    }
+
+    @Override
+    public String getName() {
+        return WebSiteType.CASA.toString();
     }
 
     @Override
