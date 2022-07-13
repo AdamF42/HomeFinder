@@ -24,6 +24,13 @@ public class HouseRepositoryFile implements HouseRepository {
         this.dataFile = dataFile;
     }
 
+    private static House toHouse(String str) {
+        House house = new House();
+        house.setLink(str);
+        house.setTimestamp(LocalDateTime.now());
+        return house;
+    }
+
     @Override
     public List<House> getHouses() {
         List<String> links = Try.of(() -> Files.lines(Paths.get(dataFile)))
@@ -43,13 +50,6 @@ public class HouseRepositoryFile implements HouseRepository {
         List<String> links = houses.stream().map(House::getLink).collect(Collectors.toList());
         Try.of(() -> writeString(links))
                 .onFailure(e -> logger.error("Unable to write file", e));
-    }
-
-    private static House toHouse(String str) {
-        House house = new House();
-        house.setLink(str);
-        house.setTimestamp(LocalDateTime.now());
-        return house;
     }
 
     private Callable<String> writeString(String str) {

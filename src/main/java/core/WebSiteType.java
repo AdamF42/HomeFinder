@@ -6,7 +6,7 @@ public enum WebSiteType {
     CASA("casa"),
     IDEALISTA("idealista");
 
-    private String s;
+    private final String s;
 
     WebSiteType(String text) {
         this.s = text;
@@ -22,7 +22,7 @@ public enum WebSiteType {
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return s;
     }
 }

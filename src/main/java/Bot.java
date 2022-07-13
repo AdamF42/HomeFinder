@@ -55,6 +55,49 @@ class Bot extends TelegramLongPollingBot {
         this.houseRepository = houseRepository;
     }
 
+    public static void main(String[] args) {
+
+        logger.info("Connecting to MongoDB");
+        ConnectionString connectionString = new ConnectionString(System.getenv(MONGO_CONN_STR));
+        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
+        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
+        MongoClientSettings clientSettings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .codecRegistry(codecRegistry)
+                .build();
+
+        String mongoDataBase = System.getenv(MONGO_DATABASE);
+        logger.info("Getting MongoDB database {}", mongoDataBase);
+        MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
+                .map(mc -> mc.getDatabase(mongoDataBase))
+                .onFailure(e -> logger.error("Unable to get database", e))
+                .get();
+
+        logger.info("Getting House collection");
+        MongoCollection<House> collection = database.getCollection("links", House.class);
+        HouseRepository houseRepository = new HouseRepositoryMongo(collection);
+
+        logger.info("Getting Config collection");
+        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
+        ConfigRepository configRepository = new ConfigRepository(configCollection);
+
+        logger.info("Getting starting pages");
+        Config newConf = configRepository.getConfig();
+        List<Page> pages = newConf.getWebsites().stream()
+                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
+                .collect(Collectors.toList());
+
+        logger.info("Getting executors");
+        ExecutorService executor = Executors.newFixedThreadPool(pages.size());
+
+        logger.info("Getting Telegram Bot");
+        Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
+                .onFailure(e -> logger.error("Unable to get telegram api", e))
+                .andThenTry(api -> api.registerBot(new Bot(newConf, pages, houseRepository, executor)))
+                .onFailure(e -> logger.error("Unable to register telegram bot", e))
+                .onSuccess(res -> logger.info("Bot started"));
+    }
+
     @Override
     public String getBotUsername() {
         return "Bot";
@@ -124,49 +167,6 @@ class Bot extends TelegramLongPollingBot {
             runnables.forEach(RunnableImpl::reloadPage);
         }
         runnables.forEach(runnable -> runnable.setShouldRun(true));
-    }
-
-    public static void main(String[] args) {
-
-        logger.info("Connecting to MongoDB");
-        ConnectionString connectionString = new ConnectionString(System.getenv(MONGO_CONN_STR));
-        CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
-        CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), pojoCodecRegistry);
-        MongoClientSettings clientSettings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .codecRegistry(codecRegistry)
-                .build();
-
-        String mongoDataBase = System.getenv(MONGO_DATABASE);
-        logger.info("Getting MongoDB database {}", mongoDataBase);
-        MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
-                .map(mc -> mc.getDatabase(mongoDataBase))
-                .onFailure(e -> logger.error("Unable to get database", e))
-                .get();
-
-        logger.info("Getting House collection");
-        MongoCollection<House> collection = database.getCollection("links", House.class);
-        HouseRepository houseRepository = new HouseRepositoryMongo(collection);
-
-        logger.info("Getting Config collection");
-        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
-        ConfigRepository configRepository = new ConfigRepository(configCollection);
-
-        logger.info("Getting starting pages");
-        Config newConf = configRepository.getConfig();
-        List<Page> pages = newConf.getWebsites().stream()
-                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
-                .collect(Collectors.toList());
-
-        logger.info("Getting executors");
-        ExecutorService executor = Executors.newFixedThreadPool(pages.size());
-
-        logger.info("Getting Telegram Bot");
-        Try.of(() -> new TelegramBotsApi(DefaultBotSession.class))
-                .onFailure(e -> logger.error("Unable to get telegram api", e))
-                .andThenTry(api -> api.registerBot(new Bot(newConf, pages, houseRepository, executor)))
-                .onFailure(e -> logger.error("Unable to register telegram bot", e))
-                .onSuccess(res -> logger.info("Bot started"));
     }
 
 }

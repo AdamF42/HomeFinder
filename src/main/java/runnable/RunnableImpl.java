@@ -20,9 +20,9 @@ public class RunnableImpl implements Runnable {
     private static final Logger logger = (Logger) LoggerFactory.getLogger(RunnableImpl.class);
 
     private final String chatId;
-    private Page page;
     private final HouseRepository houseRepository;
     private final TelegramLongPollingBot bot;
+    private Page page;
     private boolean shouldRun = true;
 
     public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, HouseRepository houseRepository) {
@@ -35,6 +35,7 @@ public class RunnableImpl implements Runnable {
     private House toHouse(String str) {
         House house = new House();
         house.setLink(str);
+        house.setWebsite(page.getName());
         house.setTimestamp(LocalDateTime.now());
         return house;
     }
@@ -50,16 +51,16 @@ public class RunnableImpl implements Runnable {
     public void run() {
         while (shouldRun) {
             List<String> houses = houseRepository.getHouses().stream().map(House::getLink).collect(Collectors.toList());
+            logger.debug("[WEBSITE] {} [HOUSES] {}", page.getBaseUrl(), houses.size());
             try {
                 List<House> newHouses = getAllLinks().stream()
                         .filter(link -> !houses.contains(link))
                         .peek(e -> logger.info("[NEW LINK] {}", e))
-                        .map(this::toHouse).collect(Collectors.toList());
-
-                houseRepository.saveHouses(newHouses);
+                        .map(this::toHouse)
+                        .collect(Collectors.toList());
 
                 newHouses.forEach(house -> sendMsg(this.chatId, house.getLink()));
-
+                houseRepository.saveHouses(newHouses);
             } catch (Exception e) {
                 logger.error("Generic error", e);
             }
