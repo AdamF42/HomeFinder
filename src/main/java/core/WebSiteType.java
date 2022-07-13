@@ -20,4 +20,9 @@ public enum WebSiteType {
         }
         return null;
     }
+
+    @Override
+    public String toString(){
+        return s;
+    }
 }
