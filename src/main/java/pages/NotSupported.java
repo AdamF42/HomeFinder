@@ -25,6 +25,11 @@ public class NotSupported implements Page {
     }
 
     @Override
+    public String getBaseUrl() {
+        return "";
+    }
+
+    @Override
     public Page clone() {
         return this;
     }

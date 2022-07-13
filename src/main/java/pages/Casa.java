@@ -71,6 +71,11 @@ public class Casa implements Page {
     }
 
     @Override
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    @Override
     public Casa clone() {
         return new Casa(document.location(), baseUrl, interval, navigationInterval);
     }

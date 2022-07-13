@@ -16,7 +16,7 @@ public class ConfigRepository {
         return collection.find().first();
     }
 
-    public WebSite getWebsite(WebSiteType webSiteType){
+    public WebSite getWebsite(WebSiteType webSiteType) {
         return getConfig().getWebsites().stream()
                 .filter(e -> webSiteType.name().equalsIgnoreCase(e.getName()))
                 .findFirst().orElseGet(WebSite::new);

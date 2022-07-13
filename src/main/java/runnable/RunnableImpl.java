@@ -1,8 +1,8 @@
 package runnable;
 
 import ch.qos.logback.classic.Logger;
-import data.pojo.House;
 import data.HouseRepository;
+import data.pojo.House;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -63,7 +63,9 @@ public class RunnableImpl implements Runnable {
             } catch (Exception e) {
                 logger.error("Generic error", e);
             }
-            SleepUtil.sleep(page.getParsingInterval());
+            Long parsingInterval = page.getParsingInterval();
+            logger.debug("[WEBSITE] {} [SLEEP] {}", page.getBaseUrl(), parsingInterval);
+            SleepUtil.sleep(parsingInterval);
         }
     }
 
@@ -86,7 +88,9 @@ public class RunnableImpl implements Runnable {
     }
 
     private List<String> getAllLinks(List<String> links, final Page page) {
-        SleepUtil.sleep(page.getNavigationInterval());
+        Long navigationInterval = page.getNavigationInterval();
+        logger.debug("[WEBSITE] {} [NAV INTERVAL] {}", page.getBaseUrl(), navigationInterval);
+        SleepUtil.sleep(navigationInterval);
         links.addAll(page.getLinks());
         if (!page.hasNextPage()) {
             return links;

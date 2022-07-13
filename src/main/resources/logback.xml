@@ -15,16 +15,16 @@
     </appender>
 
     <logger name="Bot" level="DEBUG">
-        <appender-ref ref="FILE" />
+        <appender-ref ref="FILE"/>
     </logger>
     <logger name="pages" level="DEBUG">
-        <appender-ref ref="FILE" />
+        <appender-ref ref="FILE"/>
     </logger>
     <logger name="runnable" level="DEBUG">
-        <appender-ref ref="FILE" />
+        <appender-ref ref="FILE"/>
     </logger>
 
     <root level="debug">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="STDOUT"/>
     </root>
 </configuration>

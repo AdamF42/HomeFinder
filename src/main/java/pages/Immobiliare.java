@@ -73,6 +73,11 @@ public class Immobiliare implements Page {
     }
 
     @Override
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    @Override
     public Immobiliare clone() {
         return new Immobiliare(document.location(), baseUrl, interval, navigationInterval);
     }

@@ -79,6 +79,11 @@ public class Idealista implements Page {
     }
 
     @Override
+    public String getBaseUrl() {
+        return this.baseUrl;
+    }
+
+    @Override
     public Idealista clone() {
         return new Idealista(document.location(), baseUrl, interval, navigationInterval);
     }

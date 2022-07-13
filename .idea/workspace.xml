@@ -5,15 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b8e9c16a-8e4c-4af3-b284-f74a792d76e5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/config.yml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/config/ConfigHandler.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/config/models/Config.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/config/models/WebSite.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/logs.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Bot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Bot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/MappingPOJO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MappingPOJO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Mongo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Mongo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/ConfigHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/ConfigHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/ConfigRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/models/ConfigYaml.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/models/ConfigYaml.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/models/WebSite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/models/WebSite.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/config/pojo/Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/pojo/Config.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/data/HouseRepositoryMongo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/data/HouseRepositoryMongo.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Casa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Casa.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/NotSupported.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/NotSupported.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Subito.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Subito.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/runnable/RunnableImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/runnable/RunnableImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/logback.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/logback.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,15 +43,16 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
-  </component>
-  <component name="MavenImportPreferences">
-    <option name="generalSettings">
-      <MavenGeneralSettings>
-        <option name="useMavenConfig" value="true" />
-      </MavenGeneralSettings>
-    </option>
   </component>
   <component name="ProjectId" id="2BiLBVWETLeg6SaE1X0x2nfwTdi" />
   <component name="ProjectLevelVcsManager">
@@ -119,6 +132,7 @@
       <option name="presentableId" value="Default" />
       <updated>1657383824558</updated>
       <workItem from="1657383827033" duration="48233000" />
+      <workItem from="1657705627059" duration="3802000" />
     </task>
     <servers />
   </component>
@@ -127,5 +141,16 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/Bot.java</url>
+          <line>138</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
