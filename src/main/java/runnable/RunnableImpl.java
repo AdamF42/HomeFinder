@@ -79,6 +79,7 @@ public class RunnableImpl implements Runnable {
         } catch (TelegramApiException e) {
             logger.error("Unable to send msg {}", msg, e);
         }
+        SleepUtil.sleep(500);
     }
 
     private List<String> getAllLinks() {
