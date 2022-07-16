@@ -47,7 +47,7 @@ public class Casa implements Page {
 
     @Override
     public List<String> getLinks() {
-        return document.select("#app > div > section > .list > div > article > div.csa_gallery.med > div.csa_gallery__slider > div:nth-child(1) > figure > a").stream()
+        return document.select(".csa-gallery__imga").stream()
                 .map(e -> baseUrl + e.attributes().get("href")) //
                 .collect(Collectors.toList());
     }
