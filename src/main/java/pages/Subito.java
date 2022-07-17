@@ -61,7 +61,6 @@ public class Subito implements Page, Cloneable {
         String url = elements.stream()
                 .map(e -> e.attributes().get("href")) //
                 .findFirst().orElseThrow();
-
         return new Subito(baseUrl + url, baseUrl, interval, navigationInterval);
     }
 
