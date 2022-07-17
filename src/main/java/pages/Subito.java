@@ -57,9 +57,10 @@ public class Subito implements Page, Cloneable {
 
     @Override
     public Page getNextPage() {
-        Elements elements = document.select("div:nth-child(2) > nav > a");
-        List<String> arrowLinks = elements.stream().map(e -> e.attributes().get("href")).collect(Collectors.toList());
-        String url = arrowLinks.get(arrowLinks.size() - 1);
+        Elements elements = document.select("div > div:nth-child(2) > nav > a:last-child");
+        String url = elements.stream()
+                .map(e -> e.attributes().get("href")) //
+                .findFirst().orElseThrow();
 
         return new Subito(baseUrl + url, baseUrl, interval, navigationInterval);
     }

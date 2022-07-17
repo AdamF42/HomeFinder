@@ -3,3 +3,5 @@ data.txt
 target/*
 logs.log
 .env
+.idea/workspace.xml
+src/main/java/test.java
