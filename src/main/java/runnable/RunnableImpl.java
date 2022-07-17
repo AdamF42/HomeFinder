@@ -12,7 +12,9 @@ import utils.sleep.SleepUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RunnableImpl implements Runnable {
@@ -82,14 +84,14 @@ public class RunnableImpl implements Runnable {
         SleepUtil.sleep(500);
     }
 
-    private List<String> getAllLinks() {
+    private Set<String> getAllLinks() {
         Page cp = page.clone();
-        List<String> links = getAllLinks(new ArrayList<>(), cp);
+        Set<String> links = getAllLinks(new HashSet<>(), cp);
         logger.debug("[PAGE] {} [LIST]: {}", page.getStartUrl(), links.size());
         return links;
     }
 
-    private List<String> getAllLinks(List<String> links, final Page page) {
+    private Set<String> getAllLinks(Set<String> links, final Page page) {
         Long navigationInterval = page.getNavigationInterval();
         logger.debug("[WEBSITE] {} [NAV INTERVAL] {}", page.getBaseUrl(), navigationInterval);
         SleepUtil.sleep(navigationInterval);

@@ -5,27 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b8e9c16a-8e4c-4af3-b284-f74a792d76e5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/pages/Subito2.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/test.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/config.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Bot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Bot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/MappingPOJO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/MappingPOJO.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/Mongo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Mongo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/config/ConfigHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/ConfigHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/config/ConfigRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/ConfigRepository.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/config/models/ConfigYaml.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/models/ConfigYaml.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/config/models/WebSite.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/models/WebSite.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/config/pojo/Config.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/config/pojo/Config.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/data/HouseRepositoryMongo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/data/HouseRepositoryMongo.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Casa.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Casa.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Idealista.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Immobiliare.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/NotSupported.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/NotSupported.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Page.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/pages/Subito.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/pages/Subito.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/runnable/RunnableImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/runnable/RunnableImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/logback.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/logback.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,7 +70,7 @@
       <recent name="pages" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.Bot">
+  <component name="RunManager" selected="Application.test">
     <configuration name="Bot" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Bot" />
       <module name="HomeFinder" />
@@ -115,8 +98,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="test" />
+      <module name="HomeFinder" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.Bot" />
+      <item itemvalue="Application.ConfigHandler" />
+      <item itemvalue="Application.Main" />
+      <item itemvalue="Application.test" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.test" />
         <item itemvalue="Application.Bot" />
         <item itemvalue="Application.ConfigHandler" />
         <item itemvalue="Application.Main" />
@@ -139,6 +136,17 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
@@ -150,7 +158,21 @@
           <line>138</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/test.java</url>
+          <line>31</line>
+          <option name="timeStamp" value="40" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/test.java</url>
+          <line>44</line>
+          <option name="timeStamp" value="41" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>
