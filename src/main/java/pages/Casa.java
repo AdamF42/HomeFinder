@@ -33,8 +33,9 @@ public class Casa implements Page {
 
     private static Document getDocument(String url) {
         Connection conn = Jsoup.connect(url)
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                .header("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3")
                 .timeout(30000)
-                .referrer("http://www.google.com")
                 .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36");
         Document document = null;
         try {
