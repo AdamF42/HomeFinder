@@ -4,9 +4,6 @@ import ch.qos.logback.classic.Logger;
 import data.HouseRepository;
 import data.pojo.House;
 import org.slf4j.LoggerFactory;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pages.Page;
 import utils.sleep.SleepUtil;
 
@@ -14,21 +11,20 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class RunnableImpl implements Runnable {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(RunnableImpl.class);
 
-    private final String chatId;
+    private final Consumer<String> sendMsg;
     private final HouseRepository houseRepository;
-    private final TelegramLongPollingBot bot;
     private Page page;
     private boolean shouldRun = true;
 
-    public RunnableImpl(TelegramLongPollingBot bot, String chatId, Page page, HouseRepository houseRepository) {
-        this.chatId = chatId;
-        this.bot = bot;
+    public RunnableImpl(Consumer<String> sendMsg, Page page, HouseRepository houseRepository) {
+        this.sendMsg = sendMsg;
         this.page = page;
         this.houseRepository = houseRepository;
     }
@@ -60,7 +56,7 @@ public class RunnableImpl implements Runnable {
                         .map(this::toHouse)
                         .collect(Collectors.toList());
 
-                newHouses.forEach(house -> sendMsg(this.chatId, house.getLink()));
+                newHouses.forEach(house -> sendMsg.accept(house.getLink()));
                 houseRepository.saveHouses(newHouses);
             } catch (Exception e) {
                 logger.error("Generic error", e);
@@ -69,18 +65,6 @@ public class RunnableImpl implements Runnable {
             logger.debug("[WEBSITE] {} [SLEEP] {}", page.getBaseUrl(), parsingInterval);
             SleepUtil.sleep(parsingInterval);
         }
-    }
-
-    private void sendMsg(String chatId, String msg) {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
-        sendMessage.setText(msg);
-        try {
-            this.bot.execute(sendMessage);
-        } catch (TelegramApiException e) {
-            logger.error("Unable to send msg {}", msg, e);
-        }
-        SleepUtil.sleep(500);
     }
 
     private Set<String> getAllLinks() {

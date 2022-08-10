@@ -13,6 +13,9 @@ public class Config {
     @BsonProperty(value = "userIds")
     private List<Long> userId = new ArrayList<>();
 
+    @BsonProperty(value = "chatIds")
+    private List<String> chatIds = new ArrayList<>();
+
     @BsonProperty(value = "websites")
     private List<WebSite> websites = new ArrayList<>();
 
@@ -38,5 +41,13 @@ public class Config {
 
     public void setWebsites(List<WebSite> websites) {
         this.websites = websites;
+    }
+
+    public List<String> getChatIds() {
+        return chatIds;
+    }
+
+    public void setChatIds(List<String> chatIds) {
+        this.chatIds = chatIds;
     }
 }
