@@ -1,51 +1,33 @@
 package pages;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.slf4j.Logger;
+import utils.interval.RandomInterval;
 
-public class NotSupported implements Page {
-    @Override
-    public List<String> getLinks() {
-        return new ArrayList<>();
+public class NotSupported extends Page {
+    public NotSupported(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval, String linksSelector, String nextPageSelector) {
+        super(url, baseUrl, interval, navigationInterval, linksSelector, nextPageSelector);
     }
 
     @Override
-    public boolean hasNextPage() {
-        return false;
+    protected Logger getLogger() {
+        return null;
     }
 
     @Override
-    public Page getNextPage() {
-        return this;
+    protected Page createNew(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval, String linksSelector, String nextPageSelector) {
+        return null;
     }
 
-    @Override
-    public String getStartUrl() {
-        return "";
-    }
-
-    @Override
-    public String getBaseUrl() {
-        return "";
-    }
 
     @Override
     public String getName() {
-        return "";
+        return null;
     }
 
     @Override
     public Page clone() {
-        return this;
+        return null;
     }
 
-    @Override
-    public Long getParsingInterval() {
-        return 0L;
-    }
 
-    @Override
-    public Long getNavigationInterval() {
-        return 0L;
-    }
 }

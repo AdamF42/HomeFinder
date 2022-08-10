@@ -4,7 +4,8 @@ public enum WebSiteType {
     IMMOBILIARE("immobiliare"),
     SUBITO("subito"),
     CASA("casa"),
-    IDEALISTA("idealista");
+    IDEALISTA("idealista"),
+    BAKECA("bakeca");
 
     private final String s;
 

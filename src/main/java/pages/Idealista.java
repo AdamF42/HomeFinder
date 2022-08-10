@@ -4,34 +4,20 @@ import ch.qos.logback.classic.Logger;
 import core.WebSiteType;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.LoggerFactory;
 import utils.interval.RandomInterval;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class Idealista implements Page {
+public class Idealista extends Page {
 
     private static final Logger logger = (Logger) LoggerFactory.getLogger(Idealista.class);
-    private final Document document;
-    private final String startUrl;
-    private final RandomInterval interval;
-    private final RandomInterval navigationInterval;
-    private final String baseUrl;
 
-    public Idealista(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval) {
-        this.interval = interval;
-        this.navigationInterval = navigationInterval;
-        this.document = getDocument(url);
-        this.startUrl = url;
-        this.baseUrl = baseUrl;
+    public Idealista(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval, String linksSelector, String nextPageSelector) {
+        super(url, baseUrl, interval, navigationInterval, linksSelector, nextPageSelector);
     }
 
-    private static Document getDocument(String url) {
-        Connection conn = Jsoup.connect(url)
+    @Override
+    protected Connection getConnection(String url) {
+        return Jsoup.connect(url)
                 .header("Host", "www.idealista.it")
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
                 .header("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3")
@@ -44,63 +30,33 @@ public class Idealista implements Page {
                 .timeout(30000)
                 .referrer("http://www.google.com")
                 .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36");
-        Document document = null;
-        try {
-            document = conn.get();
-        } catch (IOException e) {
-            logger.error("Unable to get document.", e);
-        }
-        return document;
     }
 
     @Override
-    public List<String> getLinks() {
-        return document.select("#main-content > section > .item > .item-info-container > a").stream()
-                .map(e -> baseUrl + e.attributes().get("href")) //
-                .collect(Collectors.toList());
+    protected Logger getLogger() {
+        return logger;
     }
 
     @Override
-    public boolean hasNextPage() {
-        return document.select("#main-content > section > div > ul > li.next > a").stream().findFirst().isPresent();
+    protected Page createNew(String url, String baseUrl, RandomInterval interval, RandomInterval navigationInterval, String linksSelector, String nextPageSelector) {
+        return new Idealista(baseUrl + url, baseUrl, interval, navigationInterval, linksSelector, nextPageSelector);
     }
 
-    @Override
-    public Page getNextPage() {
-        Elements elements = document.select("#main-content > section > div > ul > li.next > a");
-        String url = elements.stream()
-                .map(e -> e.attributes().get("href")) //
-                .findFirst().orElseThrow();
-        return new Idealista(baseUrl + url, baseUrl, interval, navigationInterval);
-    }
-
-    @Override
-    public String getStartUrl() {
-        return startUrl;
-    }
-
-    @Override
-    public String getBaseUrl() {
-        return this.baseUrl;
-    }
+//    @Override
+//    public Page getNextPage() {
+//        Elements elements = document.select("#main-content > section > div > ul > li.next > a");
+//        String url = elements.stream()
+//                .map(e -> e.attributes().get("href")) //
+//                .findFirst().orElseThrow();
+//        return new Idealista(baseUrl + url, baseUrl, interval, navigationInterval, linksSelector, nextPageSelector);
+//    }
 
     @Override
     public String getName() {
         return WebSiteType.IDEALISTA.toString();
     }
 
-    @Override
     public Idealista clone() {
-        return new Idealista(document.location(), baseUrl, interval, navigationInterval);
-    }
-
-    @Override
-    public Long getParsingInterval() {
-        return this.interval.getInterval();
-    }
-
-    @Override
-    public Long getNavigationInterval() {
-        return this.navigationInterval.getInterval();
+        return new Idealista(document.location(), baseUrl, interval, navigationInterval, linksSelector, nextPageSelector);
     }
 }
