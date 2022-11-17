@@ -139,13 +139,14 @@ class Bot extends TelegramLongPollingBot {
         sendMsg(chatId).accept("pong");
     }
 
+
     private Consumer<String> sendMsg(String chatId) {
         return msg -> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(chatId);
             sendMessage.setText(msg);
             try {
-                execute(sendMessage);
+                this.execute(sendMessage);
             } catch (TelegramApiException e) {
                 logger.error("Unable to send msg {}", msg, e);
             }
