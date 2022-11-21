@@ -11,7 +11,11 @@ public class PageFactory {
         RandomInterval navigationInterval = new RandomInterval(webSite.getMinPageNavigationInterval(), webSite.getMaxPageNavigationInterval());
         switch (type) {
             case IMMOBILIARE:
-                return new Immobiliare(webSite.getUrl(), webSite.getBaseUrl(), parsingInterval, navigationInterval,
+                return new Immobiliare(
+                        webSite.getUrl(),
+                        webSite.getBaseUrl(),
+                        parsingInterval,
+                        navigationInterval,
                         "div > div.nd-mediaObject__content.in-card__content.in-realEstateListCard__content > a",
                         "#__next > section > div.in-main.in-searchList__main > div.in-pagination.in-searchList__pagination > div:nth-child(3) > a:nth-child(1)");
             case IDEALISTA:

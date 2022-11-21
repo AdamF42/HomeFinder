@@ -34,6 +34,13 @@ public class WebSite {
     @BsonProperty(value = "maxPageNavigationInterval")
     private Integer maxPageNavigationInterval;
 
+    // String linksSelector, String nextPageSelector,
+    @BsonProperty(value = "linksSelector")
+    private String linksSelector;
+
+    @BsonProperty(value = "nextPageSelector")
+    private String nextPageSelector;
+
     public String getName() {
         return name;
     }
@@ -112,5 +119,21 @@ public class WebSite {
 
     public void setMaxPageNavigationInterval(Integer maxPageNavigationInterval) {
         this.maxPageNavigationInterval = maxPageNavigationInterval;
+    }
+
+    public String getLinksSelector() {
+        return linksSelector;
+    }
+
+    public void setLinksSelector(String linksSelector) {
+        this.linksSelector = linksSelector;
+    }
+
+    public String getNextPageSelector() {
+        return nextPageSelector;
+    }
+
+    public void setNextPageSelector(String nextPageSelector) {
+        this.nextPageSelector = nextPageSelector;
     }
 }

@@ -6,14 +6,13 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import ch.qos.logback.classic.Logger;
 import config.pojo.Config;
-import model.TelegramBot;
-import org.slf4j.LoggerFactory;
+import config.pojo.WebSite;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 public class ManagerBehavior extends AbstractBehavior<ManagerBehavior.Command> {
@@ -94,12 +93,16 @@ public class ManagerBehavior extends AbstractBehavior<ManagerBehavior.Command> {
 
                     switch (msgtext) {
                         case "start":
-                            handleStart(bot);
+                            handleStart(bot, chatId, config);
+                            break;
                         case "stop":
                             handleStop(bot);
+                            break;
                         case "ping":
                             handlePing(chatId, bot);
+                            break;
                         default:
+                            // TODO: handle default
                     }
                     return Behaviors.same();
                 })
@@ -112,9 +115,24 @@ public class ManagerBehavior extends AbstractBehavior<ManagerBehavior.Command> {
 
     private void handleStop(ActorRef<BotBehavior.Command> bot) {
 
+
     }
 
-    private void handleStart(ActorRef<BotBehavior.Command> bot) {
+    private void handleStart(ActorRef<BotBehavior.Command> bot, String chatId, Config config) {
+
+        for (WebSite site: config.getWebsites()) {
+            if (site.getName().equalsIgnoreCase("immobiliare")) {
+                ActorRef<WebSiteActor.Command> website = getContext().spawn(WebSiteActor.create(), site.getName()+"_website");
+                website.tell(new WebSiteActor.StartCommand());
+                ActorRef<ScraperActor.Command> scraper = getContext().spawn(ScraperActor.create(), site.getName()+"_scraper");
+                scraper.tell(new ScraperActor.StartCommand(
+                        site.getUrl(),
+                        site.getBaseUrl(),
+                        "div > div.nd-mediaObject__content.in-card__content.in-realEstateListCard__content > a",
+                        "#__next > section > div.in-main.in-searchList__main > div.in-pagination.in-searchList__pagination > div:nth-child(3) > a:nth-child(1)",
+                        website));
+            }
+        }
 
     }
 
