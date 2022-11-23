@@ -34,7 +34,6 @@ public class WebSite {
     @BsonProperty(value = "maxPageNavigationInterval")
     private Integer maxPageNavigationInterval;
 
-    // String linksSelector, String nextPageSelector,
     @BsonProperty(value = "linksSelector")
     private String linksSelector;
 

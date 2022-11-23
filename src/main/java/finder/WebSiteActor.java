@@ -9,7 +9,6 @@ import akka.actor.typed.javadsl.Receive;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -66,7 +65,8 @@ public class WebSiteActor extends AbstractBehavior<WebSiteActor.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(1));
+                            timer.cancel(TIMER_KEY);
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(10)); // TODO: should be configurable
                             return Behaviors.same();
                         })
                 )

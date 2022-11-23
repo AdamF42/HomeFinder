@@ -6,13 +6,16 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import config.pojo.WebSite;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import utils.interval.RandomInterval;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,26 +37,20 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
     }
 
     public static class StartCommand implements Command {
+
         private static final long serialVersionUID = 1L;
-
-        private final String url;
-
-        protected final String baseUrl;
-        protected final String linksSelector;
-        protected final String nextPageSelector;
+        private final ActorRef<ManagerActor.Command> manager;
 
         private final ActorRef<WebSiteActor.Command> website;
+        private final WebSite config;
 
-        public StartCommand(String url, String baseUrl, String linksSelector, String nextPageSelector, ActorRef<WebSiteActor.Command> website) {
-            this.url = url;
-            this.baseUrl = baseUrl;
-            this.linksSelector = linksSelector;
-            this.nextPageSelector = nextPageSelector;
+        private final String chatId;
+
+        public StartCommand(ActorRef<ManagerActor.Command> manager, WebSite config, ActorRef<WebSiteActor.Command> website, String chatId) {
+            this.manager = manager;
+            this.config = config;
+            this.chatId = chatId;
             this.website = website;
-        }
-
-        public String getUrl() {
-            return url;
         }
 
         public ActorRef<WebSiteActor.Command> getWebsite() {
@@ -83,34 +80,41 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
                 .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
+                            timer.cancel(TIMER_KEY);
                             timer.startTimerAtFixedRate(TIMER_KEY, new ScrapeCommand(), Duration.ofSeconds(1));
-                            return startIntervalScraping(msg.getUrl(),msg.nextPageSelector, msg.linksSelector, msg.baseUrl, msg.getWebsite());
+                            return startIntervalScraping(msg);
                         })
                 )
                 .build();
     }
 
-    private Receive<ScraperActor.Command> startIntervalScraping(String url, String nextPageSelector, String linksSelector, String baseUrl, ActorRef<WebSiteActor.Command> website) {
+    private Receive<ScraperActor.Command> startIntervalScraping(StartCommand startMsg) {
+        RandomInterval scrapingInterval = new RandomInterval(startMsg.config.getMinParsingInterval(), startMsg.config.getMaxParsingInterval());
         return newReceiveBuilder()
-                .onMessage(ScrapeCommand.class, msg -> {
-                    website.tell(new WebSiteActor.RequestCommand(getContext().getSelf(), url));
-                    return scrapeWebSite(url, nextPageSelector, linksSelector, baseUrl, website, new HashSet<>());
-                })
+                .onMessage(ScrapeCommand.class, msg -> Behaviors.withTimers(timer -> {
+                            long newInterval = scrapingInterval.getInterval();
+                            getContext().getLog().debug(newInterval + " interval for " + startMsg.config.getUrl());
+                            timer.cancel(TIMER_KEY);
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ScrapeCommand(), Duration.ofMillis(newInterval));
+                            startMsg.website.tell(new WebSiteActor.RequestCommand(getContext().getSelf(), startMsg.config.getUrl()));
+                            return scrapeWebSite(startMsg, new HashSet<>());
+                        })
+                )
                 .build();
     }
 
-
-    private Receive<ScraperActor.Command> scrapeWebSite(String url, String nextPageSelector, String linksSelector, String baseUrl, ActorRef<WebSiteActor.Command> website, Set<String> links) {
+    private Receive<ScraperActor.Command> scrapeWebSite(StartCommand startMsg, Set<String> links) {
         return newReceiveBuilder()
                 .onMessage(HtmlCommand.class, msg -> {
                     Document doc = Jsoup.parse(msg.getHtml());
-                    links.addAll(getLinks(doc, linksSelector, baseUrl));
-                    if (hasNextPage(doc, nextPageSelector)) {
-                        website.tell(new WebSiteActor.RequestCommand(getContext().getSelf(), getNextPageUrl(doc, nextPageSelector)));
-                        return scrapeWebSite(url, nextPageSelector, linksSelector, baseUrl, website, links);
+                    links.addAll(getLinks(doc, startMsg.config.getLinksSelector(), startMsg.config.getBaseUrl()));
+                    if (hasNextPage(doc, startMsg.config.getNextPageSelector())) {
+                        startMsg.website.tell(new WebSiteActor.RequestCommand(getContext().getSelf(), getNextPageUrl(doc, startMsg.config.getNextPageSelector())));
+                        return scrapeWebSite(startMsg, links);
                     } else {
-                        getContext().getLog().debug("[LINKS] " +  links.size() + " [URL]: " + url);
-                        return startIntervalScraping(url, nextPageSelector, linksSelector, baseUrl, website);
+                        getContext().getLog().debug("[LINKS] " + links.size() + " [URL]: " + startMsg.config.getUrl());
+                        startMsg.manager.tell(new ManagerActor.LinksCommand(new ArrayList<>(links), startMsg.config.getName(), startMsg.chatId));
+                        return startIntervalScraping(startMsg);
                     }
                 })
                 .build();
@@ -132,15 +136,6 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
         return elements.stream()
                 .map(e -> e.attributes().get("href")) //
                 .findFirst().orElseThrow();
-    }
-
-    private Connection getConnection(String url) {
-        return Jsoup.connect(url)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
-                .header("Accept-Language", "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3")
-                .referrer("http://www.google.com")
-                .timeout(30000)
-                .userAgent("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36");
     }
 
 }

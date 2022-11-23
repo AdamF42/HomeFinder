@@ -3,10 +3,12 @@ package data.pojo;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class House {
+public class House implements Serializable {
+    private static final long serialVersionUID = 1L;
     private ObjectId id;
 
     @BsonProperty(value = "link")
