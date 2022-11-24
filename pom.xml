@@ -42,20 +42,17 @@
             <artifactId>mongo-java-driver</artifactId>
             <version>${mongodb-driver-sync.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor-typed_2.13</artifactId>
             <version>${akka.version}</version>
         </dependency>
-
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor-testkit-typed_2.13</artifactId>
             <version>${akka.version}</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -101,7 +98,7 @@
                                 </transformer>
                                 <!-- add Main-Class to manifest file -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>Main</mainClass>
+                                    <mainClass>it.adamf42.HomeFinder</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
