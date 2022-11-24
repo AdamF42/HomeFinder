@@ -17,7 +17,7 @@ public class Config {
     private List<String> chatIds = new ArrayList<>();
 
     @BsonProperty(value = "websites")
-    private List<WebSite> websites = new ArrayList<>();
+    private List<WebSiteConfig> webSiteConfigs = new ArrayList<>();
 
     public String getTelegramToken() {
         return telegramToken;
@@ -35,19 +35,19 @@ public class Config {
         this.userId = userId;
     }
 
-    public List<WebSite> getWebsites() {
-        return websites;
-    }
-
-    public void setWebsites(List<WebSite> websites) {
-        this.websites = websites;
-    }
-
     public List<String> getChatIds() {
         return chatIds;
     }
 
     public void setChatIds(List<String> chatIds) {
         this.chatIds = chatIds;
+    }
+
+    public List<WebSiteConfig> getWebSiteConfigs() {
+        return webSiteConfigs;
+    }
+
+    public void setWebSiteConfigs(List<WebSiteConfig> webSiteConfigs) {
+        this.webSiteConfigs = webSiteConfigs;
     }
 }

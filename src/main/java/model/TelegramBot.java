@@ -44,4 +44,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.execute(sendMessage);
     }
 
+    @Override
+    public void onClosing() {
+        this.exe.shutdownNow();
+    }
 }

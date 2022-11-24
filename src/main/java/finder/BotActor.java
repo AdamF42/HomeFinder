@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Receive;
 import config.pojo.Config;
 import model.TelegramBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.generics.BotSession;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.Serializable;
@@ -80,19 +81,18 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         return newReceiveBuilder()
                 .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
                             timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(5)); // TODO: should be configurable
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(2)); // TODO: should be configurable
                             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
                             TelegramBot bot = new TelegramBot(msg.config, getContext().getLog(), u -> msg.manager.tell(new ManagerActor.ChatCommand(u)));
-                            api.registerBot(bot);
+                            BotSession session = api.registerBot(bot);
                             getContext().getLog().info("Bot started");
-
-                            return running(bot);
+                            return running(bot, session);
                         })
                 )
                 .build();
     }
 
-    private Receive<Command> running(TelegramBot bot) {
+    private Receive<Command> running(TelegramBot bot, BotSession session) {
         return newReceiveBuilder()
                 .onMessage(SendMsgCommand.class, msg -> {
                     currentRequests.add(msg);

@@ -82,9 +82,10 @@ class Bot extends TelegramLongPollingBot {
 
         logger.info("Getting starting pages");
         Config newConf = configRepository.getConfig();
-        List<Page> pages = newConf.getWebsites().stream()
-                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
-                .collect(Collectors.toList());
+        List<Page> pages = new ArrayList<>();
+//                newConf.getWebsites().stream()
+//                .map(w -> PageFactory.get(Objects.requireNonNull(fromString(w.getName())), w))
+//                .collect(Collectors.toList());
 
         logger.info("Getting executors");
         ExecutorService executor = Executors.newFixedThreadPool(pages.size());

@@ -2,25 +2,30 @@ package finder;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.SupervisorStrategy;
+import akka.actor.typed.Terminated;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import config.pojo.Config;
-import config.pojo.WebSite;
 import data.pojo.House;
+import core.model.ScrapeParam;
+import core.model.ChatScrapingConfig;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
     private static final String MONGO_CONN_STR = "MONGO_CONN_STR";
     private static final String MONGO_DATABASE = "MONGO_DATABASE";
+
+    private Map<String, List<ActorRef<ScraperActor.Command>>> currentChatScrapers = new HashMap<>();
+    private Map<String, Integer> currentChatScrapersCounter = new HashMap<>();
 
     public interface Command extends Serializable {
     }
@@ -37,8 +42,11 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
         private static final long serialVersionUID = 1L;
         private final Config config;
 
-        public ConfigResultCommand(Config config) {
+        private final List<ChatScrapingConfig> chatScrapingConfigs;
+
+        public ConfigResultCommand(Config config, List<ChatScrapingConfig> chatScrapingConfigs) {
             this.config = config;
+            this.chatScrapingConfigs = chatScrapingConfigs;
         }
 
         public Config getConfig() {
@@ -93,27 +101,62 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
 
     @Override
     public Receive<Command> createReceive() {
+
+
+        Behavior<DatabaseActor.Command> dbBehavior =
+                Behaviors.supervise(DatabaseActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+
+        ActorRef<DatabaseActor.Command> db = getContext().spawn(dbBehavior, "database");
+
+        Behavior<BotActor.Command> botBehavior =
+                Behaviors.supervise(BotActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+
+        ActorRef<BotActor.Command> bot = getContext().spawn(botBehavior, "bot");
+
+
+
+
         return newReceiveBuilder()
                 .onMessage(BootCommand.class, msg -> {
-                    ActorRef<DatabaseActor.Command> db = getContext().spawn(DatabaseActor.create(), "database");
                     db.tell(new DatabaseActor.StartCommand(System.getenv(MONGO_CONN_STR), System.getenv(MONGO_DATABASE), getContext().getSelf()));
-                    return retrieveConfig(db);
+                    return Behaviors.same();
                 })
-                .build();
-    }
-
-    private Receive<Command> retrieveConfig(ActorRef<DatabaseActor.Command> db) {
-        return newReceiveBuilder()
                 .onMessage(ConfigResultCommand.class, msg -> {
-                    ActorRef<BotActor.Command> bot = getContext().spawn(BotActor.create(), "bot");
                     bot.tell(new BotActor.StartCommand(msg.config, getContext().getSelf()));
-                    return this.running(msg.config, bot, db);
+
+                    Map<String, List<ScrapeParam>> chatScrapingConfigs = msg.chatScrapingConfigs.stream()
+                            .collect(Collectors.toMap(ChatScrapingConfig::getChatId, ChatScrapingConfig::getScrapingParams));
+
+
+                    Map<String, ActorRef<WebSiteActor.Command>> websites = msg.getConfig().getWebSiteConfigs().stream()
+                            .map(site -> {
+                                Behavior<WebSiteActor.Command> websiteBehavior = Behaviors.supervise(WebSiteActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+                                ActorRef<WebSiteActor.Command> website =  getContext().spawn(websiteBehavior, site.getName());
+                                website.tell(new WebSiteActor.StartCommand(site.getMinPageNavigationInterval(), site.getMaxPageNavigationInterval()));
+                                return website;
+                            })
+                            .collect(Collectors.toMap(e->e.path().name(), e -> e));
+
+                    return this.running(msg.config, chatScrapingConfigs, websites, bot, db);
                 })
                 .build();
     }
 
-    private Receive<Command> running(Config config, ActorRef<BotActor.Command> bot, ActorRef<DatabaseActor.Command> db) {
+    private Receive<Command> running(Config config, Map<String, List<ScrapeParam>> chatScrapingConfigs, Map<String, ActorRef<WebSiteActor.Command>> websites, ActorRef<BotActor.Command> bot, ActorRef<DatabaseActor.Command> db) {
         return newReceiveBuilder()
+                .onSignal(Terminated.class, handler -> {
+                    getContext().getLog().error("Actor terminated: " + handler.getRef().path().name());
+                    String chatId =  handler.getRef().path().name().split("_")[1];
+                    Integer actualScrapersCounter = currentChatScrapersCounter.getOrDefault(chatId, 0);
+                    if (actualScrapersCounter > 0) {
+                        actualScrapersCounter = actualScrapersCounter - 1;
+                        currentChatScrapersCounter.put(chatId, actualScrapersCounter);
+                    }
+                    if (actualScrapersCounter == 0) {
+                        currentChatScrapers.remove(chatId);
+                    }
+                    return Behaviors.same();
+                })
                 .onMessage(ChatCommand.class, msg -> {
                     if (!isValid(msg.update)) {
                         return Behaviors.same();
@@ -130,10 +173,10 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
 
                     switch (msgtext) {
                         case "start":
-                            handleStart(bot, chatId, config);
+                            handleStart(chatId, chatScrapingConfigs, websites, bot);
                             break;
                         case "stop":
-                            handleStop(bot);
+                            handleStop(chatId, bot);
                             break;
                         case "ping":
                             handlePing(chatId, bot);
@@ -145,12 +188,12 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                 })
                 .onMessage(LinksCommand.class, msg -> {
                     db.tell(new DatabaseActor.GetHousesCommand(""));
-                    return checkNewHouses(config, bot, db, msg);
+                    return checkNewHouses(config, chatScrapingConfigs, websites, bot, db, msg);
                 })
                 .build();
     }
 
-    private Receive<Command> checkNewHouses(Config config, ActorRef<BotActor.Command> bot, ActorRef<DatabaseActor.Command> db, LinksCommand linksMsg) {
+    private Receive<Command> checkNewHouses(Config config, Map<String, List<ScrapeParam>> chatScrapingConfigs, Map<String, ActorRef<WebSiteActor.Command>> websites, ActorRef<BotActor.Command> bot, ActorRef<DatabaseActor.Command> db, LinksCommand linksMsg) {
         return newReceiveBuilder()
                 .onMessage(HousesCommand.class, msg -> {
                     List<String> houses = msg.houses.stream().map(House::getLink).collect(Collectors.toList());
@@ -161,34 +204,61 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                             .collect(Collectors.toList());
                     newHouses.forEach(h -> bot.tell(new BotActor.SendMsgCommand(h.getLink(), linksMsg.chatId)));
                     db.tell(new DatabaseActor.SaveHousesCommand(newHouses));
-                    return this.running(config, bot, db);
+                    return this.running(config, chatScrapingConfigs, websites, bot, db);
                 })
                 .build();
     }
 
-
-
-        private boolean isValid(Update update) {
+    private boolean isValid(Update update) {
         return !Objects.isNull(update.getMessage()) && !Objects.isNull(update.getMessage().getFrom());
     }
 
-    private void handleStop(ActorRef<BotActor.Command> bot) {
+    private void handleStop(String chatId, ActorRef<BotActor.Command> bot) {
 
-
+        if (currentChatScrapers.getOrDefault(chatId, new ArrayList<>()).isEmpty()){
+            String msg = "Scrapers not running for chatId: " + chatId;
+            getContext().getLog().debug(msg);
+            bot.tell(new BotActor.SendMsgCommand(msg, chatId));
+        }
+        currentChatScrapers.get(chatId).forEach(a -> {
+            a.tell(new ScraperActor.StopCommand());
+        });
     }
 
-    private void handleStart(ActorRef<BotActor.Command> bot, String chatId, Config config) {
+    private void handleStart(String chatId, Map<String, List<ScrapeParam>> config, Map<String, ActorRef<WebSiteActor.Command>> websites, ActorRef<BotActor.Command> bot) {
 
-        for (WebSite site : config.getWebsites()) {
-            ActorRef<WebSiteActor.Command> website = getContext().spawn(WebSiteActor.create(), site.getName() + "_website");
-            website.tell(new WebSiteActor.StartCommand());
-            ActorRef<ScraperActor.Command> scraper = getContext().spawn(ScraperActor.create(), site.getName() + "_scraper");
+        if (config.getOrDefault(chatId, new ArrayList<>()).isEmpty()){
+            String msg = "No config found for chatId: " + chatId;
+            getContext().getLog().debug(msg);
+            bot.tell(new BotActor.SendMsgCommand(msg, chatId));
+            return;
+        }
+
+        if (!currentChatScrapers.getOrDefault(chatId, new ArrayList<>()).isEmpty()){
+
+            String msg = currentChatScrapersCounter.get(chatId)+" scrapers running for chatId: " + chatId;
+            getContext().getLog().debug(msg);
+            bot.tell(new BotActor.SendMsgCommand(msg, chatId));
+            return;
+        }
+
+        List<ActorRef<ScraperActor.Command>> chatScrapers = new ArrayList<>();
+
+        for (ScrapeParam site : config.get(chatId)) {
+            Behavior<ScraperActor.Command> scraperBehavior = Behaviors.supervise(ScraperActor.create())
+                    .onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+            ActorRef<ScraperActor.Command> scraper = getContext().spawn(scraperBehavior, site.getName() +"_" + chatId + "_scraper");
+            getContext().watch(scraper); // setup supervision for every worker
+            chatScrapers.add(scraper);
+            currentChatScrapersCounter.put(chatId, currentChatScrapersCounter.getOrDefault(chatId, 0) + 1 );
+            ActorRef<WebSiteActor.Command> website = websites.get(site.getName()); // TODO check if the website exists
             scraper.tell(new ScraperActor.StartCommand(
                     getContext().getSelf(),
                     site,
                     website,
                     chatId));
         }
+        currentChatScrapers.put(chatId, chatScrapers);
 
     }
 

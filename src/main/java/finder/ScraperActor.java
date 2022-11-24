@@ -6,8 +6,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
-import config.pojo.WebSite;
-import org.jsoup.Connection;
+import core.model.ScrapeParam;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -42,11 +41,11 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
         private final ActorRef<ManagerActor.Command> manager;
 
         private final ActorRef<WebSiteActor.Command> website;
-        private final WebSite config;
+        private final ScrapeParam config;
 
         private final String chatId;
 
-        public StartCommand(ActorRef<ManagerActor.Command> manager, WebSite config, ActorRef<WebSiteActor.Command> website, String chatId) {
+        public StartCommand(ActorRef<ManagerActor.Command> manager, ScrapeParam config, ActorRef<WebSiteActor.Command> website, String chatId) {
             this.manager = manager;
             this.config = config;
             this.chatId = chatId;
@@ -61,6 +60,11 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
     public static class ScrapeCommand implements Command {
         private static final long serialVersionUID = 1L;
     }
+
+    public static class StopCommand implements Command {
+        private static final long serialVersionUID = 1L;
+    }
+
 
     public static class HtmlCommand implements Command {
         private static final long serialVersionUID = 1L;
@@ -91,11 +95,15 @@ public class ScraperActor extends AbstractBehavior<ScraperActor.Command> {
     private Receive<ScraperActor.Command> startIntervalScraping(StartCommand startMsg) {
         RandomInterval scrapingInterval = new RandomInterval(startMsg.config.getMinParsingInterval(), startMsg.config.getMaxParsingInterval());
         return newReceiveBuilder()
+                .onMessage(StopCommand.class, msg -> {
+                    getContext().getLog().info("Received StopCommand");
+                    return Behaviors.stopped();
+                })
                 .onMessage(ScrapeCommand.class, msg -> Behaviors.withTimers(timer -> {
                             long newInterval = scrapingInterval.getInterval();
                             getContext().getLog().debug(newInterval + " interval for " + startMsg.config.getUrl());
                             timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ScrapeCommand(), Duration.ofMillis(newInterval));
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ScrapeCommand(), Duration.ofSeconds(newInterval));
                             startMsg.website.tell(new WebSiteActor.RequestCommand(getContext().getSelf(), startMsg.config.getUrl()));
                             return scrapeWebSite(startMsg, new HashSet<>());
                         })

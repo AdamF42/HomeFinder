@@ -9,6 +9,7 @@ import akka.actor.typed.javadsl.Receive;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import utils.interval.RandomInterval;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -35,6 +36,14 @@ public class WebSiteActor extends AbstractBehavior<WebSiteActor.Command> {
 
     public static class StartCommand implements Command {
         private static final long serialVersionUID = 1L;
+        private final Integer minPageNavigationInterval;
+        private final Integer maxPageNavigationInterval;
+
+
+        public StartCommand(Integer minPageNavigationInterval, Integer maxPageNavigationInterval) {
+            this.minPageNavigationInterval = minPageNavigationInterval;
+            this.maxPageNavigationInterval = maxPageNavigationInterval;
+        }
     }
 
     public static class ProcessRequestCommand implements Command {
@@ -66,11 +75,21 @@ public class WebSiteActor extends AbstractBehavior<WebSiteActor.Command> {
         return newReceiveBuilder()
                 .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
                             timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(10)); // TODO: should be configurable
-                            return Behaviors.same();
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(1));
+                            return processRequests(msg);
                         })
                 )
-                .onMessage(ProcessRequestCommand.class, msg -> {
+                .build();
+    }
+
+    private Receive<Command> processRequests(StartCommand startMsg) {
+        RandomInterval navigationInterval = new RandomInterval(startMsg.minPageNavigationInterval, startMsg.maxPageNavigationInterval);
+        return newReceiveBuilder()
+                .onMessage(ProcessRequestCommand.class, msg -> Behaviors.withTimers(timer -> {
+                    long newInterval = navigationInterval.getInterval();
+                    getContext().getLog().debug(newInterval + " interval for " + getContext().getSelf().path().name());
+                    timer.cancel(TIMER_KEY);
+                    timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(newInterval));
                     if (!currentRequests.isEmpty()) {
                         RequestCommand req = currentRequests.remove();
                         getContext().getLog().debug("ProcessRequestCommand: " + req.getReq());
@@ -79,9 +98,9 @@ public class WebSiteActor extends AbstractBehavior<WebSiteActor.Command> {
                     } else {
                         //TODO: create an idle behaviour
                     }
-
                     return Behaviors.same();
                 })
+                )
                 .onMessage(RequestCommand.class, msg -> {
                     currentRequests.add(msg);
                     return Behaviors.same();

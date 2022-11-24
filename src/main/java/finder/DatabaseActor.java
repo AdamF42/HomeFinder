@@ -12,7 +12,11 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import config.ConfigRepository;
+import config.pojo.ChatConfig;
 import config.pojo.Config;
+import config.pojo.ScrapingConfigs;
+import core.model.ChatScrapingConfig;
+import core.model.ScrapeParam;
 import data.HouseRepository;
 import data.HouseRepositoryMongo;
 import data.pojo.House;
@@ -21,8 +25,11 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Filters.eq;
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
@@ -106,24 +113,43 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
                     ConfigRepository configRepository = new ConfigRepository(configCollection);
                     Config newConf = configRepository.getConfig();
-                    msg.manager.tell(new ManagerActor.ConfigResultCommand(newConf));
+
+                    MongoCollection<ChatConfig> chatConfigCollection = database.getCollection("chat_config", ChatConfig.class);
+
+                    MongoCollection<ScrapingConfigs> websiteConfigCollection = database.getCollection("website_config", ScrapingConfigs.class);
+
+                    List<ChatConfig> chatConfigs = chatConfigCollection.find().into(new ArrayList<>());
+
+
+                    List<ChatScrapingConfig> chatScrapingConfigs = chatConfigs.stream().map(c -> {
+                        List<ScrapeParam> scrapeParams = new ArrayList<>();
+                        ScrapingConfigs scrapingConfigs = websiteConfigCollection
+                                .find(eq("_id", c.getWebsiteConfigId()))
+                                .first();
+                        if (scrapingConfigs != null && scrapingConfigs.getWebsites() != null) {
+                            scrapeParams = scrapingConfigs.getWebsites().stream().map(w -> new ScrapeParam(w.getName(), w.getUrl(), w.getBaseUrl(), w.getMaxPrice(), w.getMinPrice(), w.getRoomNumber(), w.getMinParsingInterval(), w.getMaxParsingInterval(), w.getLinksSelector(), w.getNextPageSelector())).collect(Collectors.toList());
+                        }
+                        return  new ChatScrapingConfig(c.getChatId(), scrapeParams);
+                    }).collect(Collectors.toList());
+
+                    msg.manager.tell(new ManagerActor.ConfigResultCommand(newConf, chatScrapingConfigs));
                     MongoCollection<House> collection = database.getCollection("links", House.class);
                     HouseRepository houseRepository = new HouseRepositoryMongo(collection);
-                    return running(msg.manager, houseRepository, configRepository);
+                    return running(msg.manager, houseRepository);
                 })
                 .build();
     }
 
-    private Receive<Command> running(ActorRef<ManagerActor.Command> manager, HouseRepository houseRepository, ConfigRepository configRepository) {
+    private Receive<Command> running(ActorRef<ManagerActor.Command> manager, HouseRepository houseRepository) {
         return newReceiveBuilder()
                 .onMessage(GetHousesCommand.class, msg -> {
                     List<House> houses = houseRepository.getHouses();
                     manager.tell(new ManagerActor.HousesCommand(houses));
-                    return running(manager, houseRepository, configRepository);
+                    return running(manager, houseRepository);
                 })
                 .onMessage(SaveHousesCommand.class, msg -> {
                     houseRepository.saveHouses(msg.houses);
-                    return running(manager, houseRepository, configRepository);
+                    return running(manager, houseRepository);
                 })
                 .build();
     }

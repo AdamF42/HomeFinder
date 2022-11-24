@@ -14,6 +14,6 @@ public class RandomInterval implements TimeInterval {
 
     @Override
     public long getInterval() {
-        return (int) Math.floor(Math.random() * (maxSeconds - minSeconds + 1) + minSeconds) * 1000L;
+        return (int) Math.floor(Math.random() * (maxSeconds - minSeconds + 1) + minSeconds);
     }
 }

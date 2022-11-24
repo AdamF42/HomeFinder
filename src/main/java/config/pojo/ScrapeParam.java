@@ -2,7 +2,7 @@ package config.pojo;
 
 import org.bson.codecs.pojo.annotations.BsonProperty;
 
-public class WebSite {
+public class ScrapeParam {
 
     @BsonProperty(value = "name")
     private String name;
