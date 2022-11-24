@@ -127,7 +127,6 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                     Map<String, List<ScrapeParam>> chatScrapingConfigs = msg.chatScrapingConfigs.stream()
                             .collect(Collectors.toMap(ChatScrapingConfig::getChatId, ChatScrapingConfig::getScrapingParams));
 
-
                     Map<String, ActorRef<WebSiteActor.Command>> websites = msg.getConfig().getWebSiteConfigs().stream()
                             .map(site -> {
                                 Behavior<WebSiteActor.Command> websiteBehavior = Behaviors.supervise(WebSiteActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
@@ -182,7 +181,6 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                             handlePing(chatId, bot);
                             break;
                         default:
-                            // TODO: handle default
                     }
                     return Behaviors.same();
                 })
@@ -251,7 +249,7 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
             getContext().watch(scraper); // setup supervision for every worker
             chatScrapers.add(scraper);
             currentChatScrapersCounter.put(chatId, currentChatScrapersCounter.getOrDefault(chatId, 0) + 1 );
-            ActorRef<WebSiteActor.Command> website = websites.get(site.getName()); // TODO check if the website exists
+            ActorRef<WebSiteActor.Command> website = websites.get(site.getName());
             scraper.tell(new ScraperActor.StartCommand(
                     getContext().getSelf(),
                     site,

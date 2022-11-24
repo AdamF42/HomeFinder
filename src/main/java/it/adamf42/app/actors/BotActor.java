@@ -2,18 +2,13 @@ package it.adamf42.app.actors;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
+import akka.actor.typed.javadsl.*;
 import it.adamf42.app.repo.config.pojo.Config;
-import org.slf4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.BotSession;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.Serializable;
@@ -23,6 +18,9 @@ import java.util.Queue;
 import java.util.function.Consumer;
 
 public class BotActor extends AbstractBehavior<BotActor.Command> {
+
+    // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
+    private static final long MSG_INTERVAL = 2;
 
     private static class TelegramBot extends TelegramLongPollingBot {
 
@@ -61,7 +59,6 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             this.exe.shutdownNow();
         }
     }
-
 
     private Queue<SendMsgCommand> currentRequests = new LinkedList<>();
 
@@ -124,32 +121,45 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         return newReceiveBuilder()
                 .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
                             timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(2)); // TODO: should be configurable
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
                             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
                             TelegramBot bot = new TelegramBot(msg.config, u -> msg.manager.tell(new ManagerActor.ChatCommand(u)));
-                            BotSession session = api.registerBot(bot);
+                            api.registerBot(bot);
                             getContext().getLog().info("Bot started");
-                            return running(bot, session);
+                            return running(bot);
                         })
                 )
                 .build();
     }
 
-    private Receive<Command> running(TelegramBot bot, BotSession session) {
+    private Receive<Command> running(TelegramBot bot) {
+        getContext().getLog().info("running");
         return newReceiveBuilder()
                 .onMessage(SendMsgCommand.class, msg -> {
                     currentRequests.add(msg);
                     return Behaviors.same();
                 })
                 .onMessage(ProcessRequestCommand.class, msg -> {
-                    if (!currentRequests.isEmpty()) {
-                        SendMsgCommand req = currentRequests.remove();
-                        bot.sendMsg(req.getChatId(), req.getText());
-                    } else {
-                        //TODO: create an idle behaviour
+                    if (currentRequests.isEmpty()) {
+                        return idle(bot);
                     }
+                    SendMsgCommand req = currentRequests.remove();
+                    bot.sendMsg(req.getChatId(), req.getText());
                     return Behaviors.same();
                 })
+                .build();
+    }
+
+    private Receive<BotActor.Command> idle(TelegramBot bot) {
+        getContext().getLog().debug("idle");
+        return newReceiveBuilder()
+                .onMessage(SendMsgCommand.class, msg -> Behaviors.withTimers(timer -> {
+                            timer.cancel(TIMER_KEY);
+                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
+                            currentRequests.add(msg);
+                            return running(bot);
+                        })
+                )
                 .build();
     }
 }

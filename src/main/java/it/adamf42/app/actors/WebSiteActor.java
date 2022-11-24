@@ -6,10 +6,10 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import it.adamf42.app.util.RandomInterval;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import it.adamf42.app.util.RandomInterval;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -83,27 +83,38 @@ public class WebSiteActor extends AbstractBehavior<WebSiteActor.Command> {
     }
 
     private Receive<Command> processRequests(StartCommand startMsg) {
+        getContext().getLog().debug("processRequests");
         RandomInterval navigationInterval = new RandomInterval(startMsg.minPageNavigationInterval, startMsg.maxPageNavigationInterval);
         return newReceiveBuilder()
                 .onMessage(ProcessRequestCommand.class, msg -> Behaviors.withTimers(timer -> {
-                    long newInterval = navigationInterval.getInterval();
-                    getContext().getLog().debug(newInterval + " interval for " + getContext().getSelf().path().name());
-                    timer.cancel(TIMER_KEY);
-                    timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(newInterval));
-                    if (!currentRequests.isEmpty()) {
+                        timer.cancel(TIMER_KEY);
+                        if (currentRequests.isEmpty()) {
+                            return idle(startMsg);
+                        }
                         RequestCommand req = currentRequests.remove();
                         getContext().getLog().debug("ProcessRequestCommand: " + req.getReq());
                         Document doc = getDocument(req.getReq());
                         req.getActor().tell(new ScraperActor.HtmlCommand(doc.html()));
-                    } else {
-                        //TODO: create an idle behaviour
-                    }
-                    return Behaviors.same();
-                })
+                        long newInterval = navigationInterval.getInterval();
+                        getContext().getLog().debug(newInterval + " interval for " + getContext().getSelf().path().name());
+                        timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(newInterval));
+                        return Behaviors.same();
+                    })
                 )
                 .onMessage(RequestCommand.class, msg -> {
                     currentRequests.add(msg);
                     return Behaviors.same();
+                })
+                .build();
+    }
+
+    private Receive<Command> idle(StartCommand startMsg) {
+        getContext().getLog().debug("idle");
+        return newReceiveBuilder()
+                .onMessage(RequestCommand.class, msg -> {
+                    currentRequests.add(msg);
+                    getContext().getSelf().tell(new ProcessRequestCommand());
+                    return processRequests(startMsg);
                 })
                 .build();
     }

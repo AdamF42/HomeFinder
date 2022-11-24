@@ -11,12 +11,13 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import it.adamf42.app.repo.config.ConfigRepository;
+import it.adamf42.app.repo.config.ConfigRepositoryMongo;
 import it.adamf42.app.repo.config.pojo.ChatConfig;
 import it.adamf42.app.repo.config.pojo.Config;
 import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
 import it.adamf42.core.domain.ChatScrapingConfig;
 import it.adamf42.core.domain.ScrapeParam;
+import it.adamf42.core.repo.config.ConfigRepository;
 import it.adamf42.core.repo.data.HouseRepository;
 import it.adamf42.app.repo.data.HouseRepositoryMongo;
 import it.adamf42.app.repo.data.pojo.House;
@@ -110,8 +111,8 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
                             .map(mc -> mc.getDatabase(msg.database))
                             .get();
-                    MongoCollection<Config> configCollection = database.getCollection("it/adamf42/app/repo/config", Config.class);
-                    ConfigRepository configRepository = new ConfigRepository(configCollection);
+                    MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
+                    ConfigRepository configRepository = new ConfigRepositoryMongo(configCollection);
                     Config newConf = configRepository.getConfig();
 
                     MongoCollection<ChatConfig> chatConfigCollection = database.getCollection("chat_config", ChatConfig.class);

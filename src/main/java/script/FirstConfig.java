@@ -6,7 +6,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import it.adamf42.app.repo.config.ConfigRepository;
+import it.adamf42.app.repo.config.ConfigRepositoryMongo;
 import it.adamf42.app.repo.config.pojo.ChatConfig;
 import it.adamf42.app.repo.config.pojo.Config;
 import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
@@ -45,7 +45,7 @@ class FirstConfig {
 
         logger.info("Getting Config collection");
         MongoCollection<Config> configCollection = database.getCollection("it/adamf42/app/repo/config", Config.class);
-        ConfigRepository configRepository = new ConfigRepository(configCollection);
+        ConfigRepositoryMongo configRepository = new ConfigRepositoryMongo(configCollection);
         Config conf = configRepository.getConfig();
 
 
