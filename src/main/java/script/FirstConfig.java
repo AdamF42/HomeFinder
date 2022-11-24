@@ -3,6 +3,7 @@ package script;
 import ch.qos.logback.classic.Logger;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -13,7 +14,6 @@ import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
 import it.adamf42.core.repo.data.HouseRepository;
 import it.adamf42.app.repo.data.HouseRepositoryMongo;
 import it.adamf42.app.repo.data.pojo.House;
-import io.vavr.control.Try;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,8 @@ class FirstConfig {
 
         String mongoDataBase = System.getenv(MONGO_DATABASE);
         logger.info("Getting MongoDB database {}", mongoDataBase);
-        MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings)).map(mc -> mc.getDatabase(mongoDataBase)).onFailure(e -> logger.error("Unable to get database", e)).get();
+        MongoClient client = MongoClients.create(clientSettings);
+        MongoDatabase database = client.getDatabase(mongoDataBase);
 
         logger.info("Getting House collection");
         MongoCollection<House> collection = database.getCollection("links", House.class);

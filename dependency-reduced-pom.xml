@@ -29,7 +29,7 @@
                   <resource>reference.conf</resource>
                 </transformer>
                 <transformer>
-                  <mainClass>Main</mainClass>
+                  <mainClass>it.adamf42.HomeFinder</mainClass>
                 </transformer>
               </transformers>
               <filters>

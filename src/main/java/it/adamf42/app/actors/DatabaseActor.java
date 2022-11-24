@@ -8,6 +8,7 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -15,13 +16,12 @@ import it.adamf42.app.repo.config.ConfigRepositoryMongo;
 import it.adamf42.app.repo.config.pojo.ChatConfig;
 import it.adamf42.app.repo.config.pojo.Config;
 import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
+import it.adamf42.app.repo.data.HouseRepositoryMongo;
+import it.adamf42.app.repo.data.pojo.House;
 import it.adamf42.core.domain.ChatScrapingConfig;
 import it.adamf42.core.domain.ScrapeParam;
 import it.adamf42.core.repo.config.ConfigRepository;
 import it.adamf42.core.repo.data.HouseRepository;
-import it.adamf42.app.repo.data.HouseRepositoryMongo;
-import it.adamf42.app.repo.data.pojo.House;
-import io.vavr.control.Try;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
@@ -108,9 +108,8 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                             .applyConnectionString(connectionString)
                             .codecRegistry(codecRegistry)
                             .build();
-                    MongoDatabase database = Try.of(() -> MongoClients.create(clientSettings))
-                            .map(mc -> mc.getDatabase(msg.database))
-                            .get();
+                    MongoClient client = MongoClients.create(clientSettings);
+                    MongoDatabase database = client.getDatabase(msg.database);
                     MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
                     ConfigRepository configRepository = new ConfigRepositoryMongo(configCollection);
                     Config newConf = configRepository.getConfig();
@@ -130,7 +129,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                         if (scrapingConfigs != null && scrapingConfigs.getWebsites() != null) {
                             scrapeParams = scrapingConfigs.getWebsites().stream().map(w -> new ScrapeParam(w.getName(), w.getUrl(), w.getBaseUrl(), w.getMaxPrice(), w.getMinPrice(), w.getRoomNumber(), w.getMinParsingInterval(), w.getMaxParsingInterval(), w.getLinksSelector(), w.getNextPageSelector())).collect(Collectors.toList());
                         }
-                        return  new ChatScrapingConfig(c.getChatId(), scrapeParams);
+                        return new ChatScrapingConfig(c.getChatId(), scrapeParams);
                     }).collect(Collectors.toList());
 
                     msg.manager.tell(new ManagerActor.ConfigResultCommand(newConf, chatScrapingConfigs));
