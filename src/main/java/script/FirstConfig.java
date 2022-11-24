@@ -6,13 +6,13 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import config.ConfigRepository;
-import config.pojo.ChatConfig;
-import config.pojo.Config;
-import config.pojo.ScrapingConfigs;
-import data.HouseRepository;
-import data.HouseRepositoryMongo;
-import data.pojo.House;
+import it.adamf42.app.repo.config.ConfigRepository;
+import it.adamf42.app.repo.config.pojo.ChatConfig;
+import it.adamf42.app.repo.config.pojo.Config;
+import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
+import it.adamf42.core.repo.data.HouseRepository;
+import it.adamf42.app.repo.data.HouseRepositoryMongo;
+import it.adamf42.app.repo.data.pojo.House;
 import io.vavr.control.Try;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
@@ -44,7 +44,7 @@ class FirstConfig {
         HouseRepository houseRepository = new HouseRepositoryMongo(collection);
 
         logger.info("Getting Config collection");
-        MongoCollection<Config> configCollection = database.getCollection("config", Config.class);
+        MongoCollection<Config> configCollection = database.getCollection("it/adamf42/app/repo/config", Config.class);
         ConfigRepository configRepository = new ConfigRepository(configCollection);
         Config conf = configRepository.getConfig();
 

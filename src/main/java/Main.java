@@ -1,4 +1,4 @@
-import finder.HomeFinder;
+import it.adamf42.HomeFinder;
 
 public class Main {
 
