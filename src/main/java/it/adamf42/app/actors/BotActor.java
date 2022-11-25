@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
-    private static final long MSG_INTERVAL = 2;
+    private static final long MSG_INTERVAL = 5;
 
     private static class TelegramBot extends TelegramLongPollingBot {
 

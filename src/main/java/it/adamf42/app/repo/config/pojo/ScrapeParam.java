@@ -28,12 +28,6 @@ public class ScrapeParam {
     @BsonProperty(value = "maxParsingInterval")
     private Integer maxParsingInterval;
 
-    @BsonProperty(value = "minPageNavigationInterval")
-    private Integer minPageNavigationInterval;
-
-    @BsonProperty(value = "maxPageNavigationInterval")
-    private Integer maxPageNavigationInterval;
-
     @BsonProperty(value = "linksSelector")
     private String linksSelector;
 
@@ -102,22 +96,6 @@ public class ScrapeParam {
 
     public void setMaxParsingInterval(Integer maxParsingInterval) {
         this.maxParsingInterval = maxParsingInterval;
-    }
-
-    public Integer getMinPageNavigationInterval() {
-        return minPageNavigationInterval;
-    }
-
-    public void setMinPageNavigationInterval(Integer minPageNavigationInterval) {
-        this.minPageNavigationInterval = minPageNavigationInterval;
-    }
-
-    public Integer getMaxPageNavigationInterval() {
-        return maxPageNavigationInterval;
-    }
-
-    public void setMaxPageNavigationInterval(Integer maxPageNavigationInterval) {
-        this.maxPageNavigationInterval = maxPageNavigationInterval;
     }
 
     public String getLinksSelector() {

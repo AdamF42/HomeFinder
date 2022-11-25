@@ -20,6 +20,9 @@ public class House implements Serializable {
     @BsonProperty(value = "timestamp")
     private LocalDateTime timestamp;
 
+    @BsonProperty(value = "chatId")
+    private String chatId;
+
 
     // getters and setters with builder pattern
     // toString()
@@ -56,6 +59,14 @@ public class House implements Serializable {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
     }
 
     @Override

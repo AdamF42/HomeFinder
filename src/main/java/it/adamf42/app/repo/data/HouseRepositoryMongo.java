@@ -7,6 +7,8 @@ import it.adamf42.core.repo.data.HouseRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mongodb.client.model.Filters.eq;
+
 public class HouseRepositoryMongo implements HouseRepository {
 
     MongoCollection<House> collection;
@@ -17,8 +19,8 @@ public class HouseRepositoryMongo implements HouseRepository {
 
 
     @Override
-    public List<House> getHouses() {
-        return collection.find().into(new ArrayList<>());
+    public List<House> getHousesByWebsite(String website) {
+        return collection.find(eq("website", website)).into(new ArrayList<>());
     }
 
     @Override

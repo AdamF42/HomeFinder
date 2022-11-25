@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface HouseRepository {
 
-    List<House> getHouses();
+    List<House> getHousesByWebsite(String website);
 
     void saveHouse(House house);
 

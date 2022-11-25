@@ -133,7 +133,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     }).collect(Collectors.toList());
 
                     msg.manager.tell(new ManagerActor.ConfigResultCommand(newConf, chatScrapingConfigs));
-                    MongoCollection<House> collection = database.getCollection("links", House.class);
+                    MongoCollection<House> collection = database.getCollection("houses", House.class);
                     HouseRepository houseRepository = new HouseRepositoryMongo(collection);
                     return running(msg.manager, houseRepository);
                 })
@@ -143,7 +143,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
     private Receive<Command> running(ActorRef<ManagerActor.Command> manager, HouseRepository houseRepository) {
         return newReceiveBuilder()
                 .onMessage(GetHousesCommand.class, msg -> {
-                    List<House> houses = houseRepository.getHouses();
+                    List<House> houses = houseRepository.getHousesByWebsite(msg.webSiteName);
                     manager.tell(new ManagerActor.HousesCommand(houses));
                     return running(manager, houseRepository);
                 })
