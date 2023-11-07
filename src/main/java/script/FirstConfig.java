@@ -11,7 +11,7 @@ import it.adamf42.app.repo.config.ConfigRepositoryMongo;
 import it.adamf42.app.repo.config.pojo.ChatConfig;
 import it.adamf42.app.repo.config.pojo.Config;
 import it.adamf42.app.repo.config.pojo.ScrapingConfigs;
-import it.adamf42.core.repo.data.HouseRepository;
+import it.adamf42.app.repo.data.HouseRepository;
 import it.adamf42.app.repo.data.HouseRepositoryMongo;
 import it.adamf42.app.repo.data.pojo.House;
 import org.bson.codecs.configuration.CodecRegistry;

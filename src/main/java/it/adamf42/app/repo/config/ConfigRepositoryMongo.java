@@ -2,7 +2,6 @@ package it.adamf42.app.repo.config;
 
 import com.mongodb.client.MongoCollection;
 import it.adamf42.app.repo.config.pojo.Config;
-import it.adamf42.core.repo.config.ConfigRepository;
 
 public class ConfigRepositoryMongo implements ConfigRepository {
 

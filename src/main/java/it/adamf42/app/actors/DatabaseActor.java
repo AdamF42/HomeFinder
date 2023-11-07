@@ -20,8 +20,8 @@ import it.adamf42.app.repo.data.HouseRepositoryMongo;
 import it.adamf42.app.repo.data.pojo.House;
 import it.adamf42.core.domain.ChatScrapingConfig;
 import it.adamf42.core.domain.ScrapeParam;
-import it.adamf42.core.repo.config.ConfigRepository;
-import it.adamf42.core.repo.data.HouseRepository;
+import it.adamf42.app.repo.config.ConfigRepository;
+import it.adamf42.app.repo.data.HouseRepository;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 

@@ -1,4 +1,4 @@
-package it.adamf42.core.repo.data;
+package it.adamf42.app.repo.data;
 
 import it.adamf42.app.repo.data.pojo.House;
 

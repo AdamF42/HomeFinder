@@ -2,7 +2,6 @@ package it.adamf42.app.repo.data;
 
 import com.mongodb.client.MongoCollection;
 import it.adamf42.app.repo.data.pojo.House;
-import it.adamf42.core.repo.data.HouseRepository;
 
 import java.util.ArrayList;
 import java.util.List;

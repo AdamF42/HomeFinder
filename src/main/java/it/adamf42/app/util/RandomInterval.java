@@ -1,7 +1,5 @@
 package it.adamf42.app.util;
 
-import it.adamf42.core.util.TimeInterval;
-
 public class RandomInterval implements TimeInterval {
 
 
