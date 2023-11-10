@@ -7,7 +7,7 @@ public class DefaultCreateAdUseCase implements CreateAdUseCase
 
 	private final AdRepository adRepository;
 
-	DefaultCreateAdUseCase(AdRepository adRepository)
+	public DefaultCreateAdUseCase(AdRepository adRepository)
 	{
 		this.adRepository = adRepository;
 	}
