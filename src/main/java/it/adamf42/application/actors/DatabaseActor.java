@@ -103,13 +103,29 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command>
 			return Behaviors.same();
 		})
 		.onMessage(SaveAdCommand.class, msg -> {
-			CreateAdUseCase.Request request = new CreateAdUseCase.Request();
-			// TODO map ad to request
-			this.createAd.execute(request);
+			this.createAd.execute(adToRequest(msg.getAd()));
 			return Behaviors.same();
 
 		})
 		.build();
+	}
+
+	private static CreateAdUseCase.Request adToRequest(Ad ad) {
+		CreateAdUseCase.Request request = new CreateAdUseCase.Request();
+		request.setCity(ad.getCity());
+		request.setArea(ad.getArea());
+		request.setStreet(ad.getStreet());
+		request.setTitle(ad.getTitle());
+		request.setPrice(ad.getPrice());
+		request.setSquareMeters(ad.getSquareMeters());
+		request.setFloor(ad.getFloor());
+		request.setCondominiumFees(ad.getCondominiumFees());
+		request.setEnergyRating(ad.getEnergyRating());
+		request.setRooms(ad.getRooms());
+		request.setBail(ad.getBail());
+		request.setUrl(ad.getUrl());
+		request.setPublisher(ad.getPublisher());
+		return request;
 	}
 
 }
