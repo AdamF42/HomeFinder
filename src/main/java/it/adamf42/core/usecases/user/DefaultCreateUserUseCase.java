@@ -26,7 +26,8 @@ public class DefaultCreateUserUseCase implements CreateUserUseCase
 
 	private static UserRepository.DbUser mapRequestToDbUser(Request requestData)
 	{
-		UserRepository.DbUser user = new UserRepository.DbUser();
+		UserRepository.DbUser user = new UserRepository.DbUser(requestData.getChatId(), requestData.getMaxPrice(),
+		requestData.getMinPrice(), requestData.getCity());
 		user.setChatId(requestData.getChatId());
 		user.setCity(requestData.getCity());
 		user.setMaxPrice(requestData.getMaxPrice());
