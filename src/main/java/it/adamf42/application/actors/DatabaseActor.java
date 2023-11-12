@@ -24,9 +24,9 @@ import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import io.vavr.control.Try;
 import it.adamf42.core.domain.ad.Ad;
-import it.adamf42.core.usecases.DefaultCreateAdUseCase;
-import it.adamf42.core.usecases.CreateAdUseCase;
-import it.adamf42.core.usecases.repositories.AdRepository;
+import it.adamf42.core.usecases.ad.DefaultCreateAdUseCase;
+import it.adamf42.core.usecases.ad.CreateAdUseCase;
+import it.adamf42.core.usecases.ad.repositories.AdRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
 import lombok.Getter;
 

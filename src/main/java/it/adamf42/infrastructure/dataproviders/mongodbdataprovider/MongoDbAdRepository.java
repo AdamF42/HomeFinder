@@ -5,7 +5,7 @@ import org.bson.Document;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 
-import it.adamf42.core.usecases.repositories.AdRepository;
+import it.adamf42.core.usecases.ad.repositories.AdRepository;
 
 public class MongoDbAdRepository implements AdRepository
 {

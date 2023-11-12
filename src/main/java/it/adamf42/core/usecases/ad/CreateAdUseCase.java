@@ -1,9 +1,10 @@
-package it.adamf42.core.usecases;
+package it.adamf42.core.usecases.ad;
 
 import it.adamf42.core.domain.ad.Ad;
-import it.adamf42.core.usecases.repositories.AdRepository;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import it.adamf42.core.usecases.ad.repositories.AdRepository;
+
 
 public interface CreateAdUseCase
 {

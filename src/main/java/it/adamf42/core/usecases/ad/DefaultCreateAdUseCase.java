@@ -1,6 +1,6 @@
-package it.adamf42.core.usecases;
+package it.adamf42.core.usecases.ad;
 
-import it.adamf42.core.usecases.repositories.AdRepository;
+import it.adamf42.core.usecases.ad.repositories.AdRepository;
 
 public class DefaultCreateAdUseCase implements CreateAdUseCase
 {

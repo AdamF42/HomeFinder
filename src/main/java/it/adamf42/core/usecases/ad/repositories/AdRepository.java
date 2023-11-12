@@ -1,4 +1,4 @@
-package it.adamf42.core.usecases.repositories;
+package it.adamf42.core.usecases.ad.repositories;
 
 import lombok.Data;
 

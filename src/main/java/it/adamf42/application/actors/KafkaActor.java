@@ -3,7 +3,6 @@ package it.adamf42.application.actors;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -28,7 +27,6 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 
 	private final ActorRef<DatabaseActor.Command> databaseActor;
 	private final KafkaClient kafkaClient;
-
 	private Logger logger = getContext().getLog();
 
 	// Define a scheduler for running asynchronous tasks
@@ -37,7 +35,7 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	{
 		super(context);
 		this.databaseActor = databaseActor;
-		this.kafkaClient = new KafkaClient("localhost:29092", "ads", "ads-group", this::processKafkaMessage, logger);
+		this.kafkaClient = new KafkaClient("localhost:29092", "ads", "ads-group", this::processKafkaMessage, logger); // TODO: configuration should be injected
 	}
 
 	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor)
@@ -81,9 +79,10 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 		private final KafkaConsumer<String, String> kafkaConsumer;
 		private final String topic;
 		private final MessageCallback messageCallback;
-		private final Logger logger ;
+		private final Logger logger;
 
-		public KafkaClient(String bootstrapServers, String topic, String groupId, MessageCallback messageCallback, Logger logger)
+		public KafkaClient(String bootstrapServers, String topic, String groupId, MessageCallback messageCallback,
+		Logger logger)
 		{
 			this.topic = topic;
 			this.messageCallback = messageCallback;
