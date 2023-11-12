@@ -13,9 +13,13 @@ public class DefaultCreateAdUseCase implements CreateAdUseCase
 	}
 
 	@Override
-	public Response execute(Request requestData)
+	public Response execute(Request requestData) throws AlreadyPresentException
 	{
-		return new Response(AdMapper.mapDbAdToAd(this.adRepository.save(AdMapper.mapRequestToDbAd(requestData))));
+		AdRepository.DbAd ad = AdMapper.mapRequestToDbAd(requestData);
+		if (this.adRepository.isPresent(ad)) {
+			throw new AlreadyPresentException();
+		}
+		return new Response(AdMapper.mapDbAdToAd(this.adRepository.save(ad)));
 	}
 
 }

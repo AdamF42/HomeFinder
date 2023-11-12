@@ -4,7 +4,9 @@ import lombok.Data;
 
 public interface AdRepository
 {
-	DbAd save(DbAd DbAd);
+	DbAd save(DbAd dbAd);
+
+	boolean isPresent(DbAd dbAd);
 
 	@Data
 	class DbAd

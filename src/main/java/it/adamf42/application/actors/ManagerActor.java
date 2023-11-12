@@ -2,7 +2,9 @@ package it.adamf42.application.actors;
 
 import java.io.Serializable;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.SupervisorStrategy;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -30,7 +32,22 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command>
 	@Override
 	public Receive<Command> createReceive()
 	{
-		return null;
+		Behavior<DatabaseActor.Command> dbBehavior =
+		Behaviors.supervise(DatabaseActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+		ActorRef<DatabaseActor.Command> db = getContext().spawn(dbBehavior, "database");
+		getContext().watch(db);
+
+		Behavior<KafkaActor.Command> kafkaBehavior =
+		Behaviors.supervise(KafkaActor.create(db)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+		ActorRef<KafkaActor.Command> kafka = getContext().spawn(kafkaBehavior, "kafka");
+
+		return newReceiveBuilder()
+		.onMessage(ManagerActor.BootCommand.class, msg -> {
+			db.tell(new DatabaseActor.BootCommand(System.getenv(MONGO_CONN_STR), System.getenv(MONGO_DATABASE), getContext().getSelf()));
+			kafka.tell(new KafkaActor.BootCommand());
+			return Behaviors.same();
+		})
+		.build();
 	}
 
 	public static Behavior<

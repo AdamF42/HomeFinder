@@ -82,6 +82,12 @@
             <artifactId>com.google.gson</artifactId>
             <version>2.8.2.v20180104-1110</version>
         </dependency>
+        <dependency>
+            <groupId>io.vavr</groupId>
+            <artifactId>vavr</artifactId>
+            <version>0.10.4</version>
+        </dependency>
+
 
     </dependencies>
 

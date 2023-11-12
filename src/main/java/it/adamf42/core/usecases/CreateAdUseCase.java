@@ -31,7 +31,11 @@ public interface CreateAdUseCase
 		private Ad ad;
 	}
 
-	Response execute(Request requestData);
+	class AlreadyPresentException extends Exception {
+
+	}
+
+	Response execute(Request requestData) throws AlreadyPresentException;
 
 }
 

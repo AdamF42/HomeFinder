@@ -22,6 +22,7 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import io.vavr.control.Try;
 import it.adamf42.core.domain.ad.Ad;
 import it.adamf42.core.usecases.DefaultCreateAdUseCase;
 import it.adamf42.core.usecases.CreateAdUseCase;
@@ -37,7 +38,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command>
 	{
 	}
 
-	public static class StartCommand implements DatabaseActor.Command
+	public static class BootCommand implements DatabaseActor.Command
 	{
 
 		private static final long serialVersionUID = 1L;
@@ -48,7 +49,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command>
 		@Getter
 		private final ActorRef<ManagerActor.Command> manager;
 
-		public StartCommand(String connString, String database, ActorRef<ManagerActor.Command> manager)
+		public BootCommand(String connString, String database, ActorRef<ManagerActor.Command> manager)
 		{
 			this.connString = connString;
 			this.database = database;
@@ -86,7 +87,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command>
 	public Receive<DatabaseActor.Command> createReceive()
 	{
 		return newReceiveBuilder()
-		.onMessage(StartCommand.class, msg ->
+		.onMessage(BootCommand.class, msg ->
 		{
 			ConnectionString connectionString = new ConnectionString(msg.getConnString());
 			CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
@@ -103,7 +104,9 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command>
 			return Behaviors.same();
 		})
 		.onMessage(SaveAdCommand.class, msg -> {
-			this.createAd.execute(adToRequest(msg.getAd()));
+			Try.of(() -> this.createAd.execute(adToRequest(msg.getAd())))
+			.onFailure(CreateAdUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
+			.onSuccess(ad -> getContext().getLog().debug("Successfully saved Ad: {}", ad));
 			return Behaviors.same();
 
 		})

@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.slf4j.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -28,13 +29,15 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	private final ActorRef<DatabaseActor.Command> databaseActor;
 	private final KafkaClient kafkaClient;
 
+	private Logger logger = getContext().getLog();
+
 	// Define a scheduler for running asynchronous tasks
 
 	private KafkaActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor)
 	{
 		super(context);
 		this.databaseActor = databaseActor;
-		this.kafkaClient = new KafkaClient("ads", "bootstrapServers", "groupId", this::processKafkaMessage);
+		this.kafkaClient = new KafkaClient("localhost:29092", "ads", "ads-group", this::processKafkaMessage, logger);
 	}
 
 	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor)
@@ -62,27 +65,29 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	private Behavior<KafkaActor.Command> onBootCommand(KafkaActor.BootCommand bootCommand)
 	{
 		getContext().getLog().info("KafkaActor received BootCommand. Setting up Kafka consumer.");
-		CompletableFuture.runAsync(kafkaClient::startConsumer);
+		kafkaClient.start();
 		return Behaviors.same();
 	}
 
 	private void processKafkaMessage(String partition, long offset, String key, Ad ad)
 	{
-		getContext().getLog().info("Partition = {}, Offset = {}, Key = {}, Ad = {}", partition, offset, key, ad);
+		logger.info("Partition = {}, Offset = {}, Key = {}, Ad = {}", partition, offset, key, ad);
 		DatabaseActor.SaveAdCommand adReceivedCommand = new DatabaseActor.SaveAdCommand(ad);
 		databaseActor.tell(adReceivedCommand);
 	}
 
-	private static class KafkaClient
+	private static class KafkaClient extends Thread
 	{
 		private final KafkaConsumer<String, String> kafkaConsumer;
 		private final String topic;
 		private final MessageCallback messageCallback;
+		private final Logger logger ;
 
-		public KafkaClient(String bootstrapServers, String topic, String groupId, MessageCallback messageCallback)
+		public KafkaClient(String bootstrapServers, String topic, String groupId, MessageCallback messageCallback, Logger logger)
 		{
 			this.topic = topic;
 			this.messageCallback = messageCallback;
+			this.logger = logger;
 
 			Properties properties = new Properties();
 			properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -95,7 +100,8 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 			this.kafkaConsumer = new KafkaConsumer<>(properties);
 		}
 
-		public void startConsumer()
+		@Override
+		public void run()
 		{
 			kafkaConsumer.subscribe(Collections.singletonList(topic));
 
@@ -121,9 +127,8 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 			}
 			catch (JsonSyntaxException e)
 			{
-				// Handle JSON syntax exception
-				//				getContext().getLog().error("Error decoding Ad from JSON: {}", e.getMessage());
-				return null;
+				logger.error("Error decoding Ad from JSON: {}", e.getMessage());
+				return null; // TODO avoid null
 			}
 		}
 
