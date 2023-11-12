@@ -1,5 +1,6 @@
 package it.adamf42.core.usecases.user.repositories;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 public interface UserRepository {
@@ -13,6 +14,7 @@ public interface UserRepository {
 	DbUser update(DbUser DbUser);
 
 	@Data
+	@AllArgsConstructor
 	class DbUser {
 		private String chatId;
 		private Integer maxPrice;
