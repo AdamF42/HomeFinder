@@ -9,7 +9,7 @@ public interface CreateUserUseCase
 	@Data
 	class Request
 	{
-		private String chatId;
+		private Long chatId;
 		private Integer maxPrice;
 		private Integer minPrice;
 		private String city;

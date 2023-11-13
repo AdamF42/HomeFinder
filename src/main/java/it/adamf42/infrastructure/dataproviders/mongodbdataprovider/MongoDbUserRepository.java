@@ -50,7 +50,7 @@ public class MongoDbUserRepository implements UserRepository
 	}
 
 	@Override
-	public boolean existsByChatId(String chatId)
+	public boolean existsByChatId(Long chatId)
 	{
 		Document query = new Document("chatId", chatId);
 		return userCollection.countDocuments(query) > 0;
@@ -71,7 +71,7 @@ public class MongoDbUserRepository implements UserRepository
 
 	private DbUser documentToDbUser(Document document)
 	{
-		return new DbUser(document.getString("chatId"), document.getInteger("maxPrice"),
+		return new DbUser(document.getLong("chatId"), document.getInteger("maxPrice"),
 		document.getInteger("minPrice"), document.getString("city"));
 	}
 }

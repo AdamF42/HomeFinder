@@ -16,7 +16,7 @@ public class DefaultCreateUserUseCase implements CreateUserUseCase
 	@Override
 	public Response execute(Request requestData) throws AlreadyPresentException
 	{
-		it.adamf42.core.usecases.user.repositories.UserRepository.DbUser user = mapRequestToDbUser(requestData);
+		UserRepository.DbUser user = mapRequestToDbUser(requestData);
 		if (this.UserRepository.existsByChatId(requestData.getChatId()))
 		{
 			throw new AlreadyPresentException();

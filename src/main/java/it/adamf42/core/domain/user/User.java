@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class User
 {
-	String chatId;
+	Long chatId;
 	Integer maxPrice;
 	Integer minPrice;
 	String city;
