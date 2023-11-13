@@ -11,7 +11,7 @@
     <properties>
         <jdk.version>11</jdk.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mongodb-driver-sync.version>3.12.12</mongodb-driver-sync.version>
+        <mongodb-driver-sync.version>3.12.14</mongodb-driver-sync.version>
         <akka.version>2.8.5</akka.version>
     </properties>
 
