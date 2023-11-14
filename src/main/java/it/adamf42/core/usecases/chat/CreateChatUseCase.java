@@ -1,21 +1,21 @@
-package it.adamf42.core.usecases.user;
+package it.adamf42.core.usecases.chat;
 
-import it.adamf42.core.domain.user.User;
+import it.adamf42.core.domain.chat.Chat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-public interface CreateUserUseCase
+public interface CreateChatUseCase
 {
 	@Data
 	class Request
 	{
-		private User user;
+		private Chat chat;
 	}
 
 	@Data
 	@AllArgsConstructor
 	class Response {
-		private User user;
+		private Chat chat;
 	}
 
 	class AlreadyPresentException extends Exception {

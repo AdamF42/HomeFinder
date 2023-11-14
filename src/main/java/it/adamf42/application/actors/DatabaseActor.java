@@ -14,17 +14,17 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import io.vavr.control.Try;
 import it.adamf42.core.domain.ad.Ad;
-import it.adamf42.core.domain.user.User;
+import it.adamf42.core.domain.chat.Chat;
 import it.adamf42.core.usecases.ad.CreateAdUseCase;
 import it.adamf42.core.usecases.ad.DefaultCreateAdUseCase;
 import it.adamf42.core.usecases.ad.repositories.AdRepository;
-import it.adamf42.core.usecases.user.CreateUserUseCase;
-import it.adamf42.core.usecases.user.DefaultCreateUserUseCase;
-import it.adamf42.core.usecases.user.DefaultUpdateUserUseCase;
-import it.adamf42.core.usecases.user.UpdateUserUseCase;
-import it.adamf42.core.usecases.user.repositories.UserRepository;
+import it.adamf42.core.usecases.chat.CreateChatUseCase;
+import it.adamf42.core.usecases.chat.DefaultCreateChatUseCase;
+import it.adamf42.core.usecases.chat.DefaultUpdateChatUseCase;
+import it.adamf42.core.usecases.chat.UpdateChatUseCase;
+import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
-import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbUserRepository;
+import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbChatRepository;
 import lombok.Getter;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -38,8 +38,8 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
 
     private CreateAdUseCase createAd;
-    private CreateUserUseCase createUser;
-    private UpdateUserUseCase updateUser;
+    private CreateChatUseCase createUser;
+    private UpdateChatUseCase updateUser;
 
     public interface Command extends Serializable {
     }
@@ -73,25 +73,25 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         }
     }
 
-    public static class SaveUserCommand implements DatabaseActor.Command {
+    public static class SaveChatCommand implements DatabaseActor.Command {
         private static final long serialVersionUID = 1L;
 
         @Getter
-        private final User user;
+        private final Chat chat;
 
-        public SaveUserCommand(User user) {
-            this.user = user;
+        public SaveChatCommand(Chat chat) {
+            this.chat = chat;
         }
     }
 
-    public static class UpdateUserCommand implements DatabaseActor.Command {
+    public static class UpdateChatCommand implements DatabaseActor.Command {
         private static final long serialVersionUID = 1L;
 
         @Getter
-        private final User user;
+        private final Chat chat;
 
-        public UpdateUserCommand(User user) {
-            this.user = user;
+        public UpdateChatCommand(Chat chat) {
+            this.chat = chat;
         }
     }
 
@@ -120,9 +120,9 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     AdRepository adRepository = new MongoDbAdRepository(adsCollection);
                     this.createAd = new DefaultCreateAdUseCase(adRepository);
                     MongoCollection<Document> usersCollection = database.getCollection("users");
-                    UserRepository userRepository = new MongoDbUserRepository(usersCollection);
-                    this.createUser = new DefaultCreateUserUseCase(userRepository);
-                    this.updateUser = new DefaultUpdateUserUseCase(userRepository);
+                    ChatRepository chatRepository = new MongoDbChatRepository(usersCollection);
+                    this.createUser = new DefaultCreateChatUseCase(chatRepository);
+                    this.updateUser = new DefaultUpdateChatUseCase(chatRepository);
                     return Behaviors.same();
                 })
                 .onMessage(SaveAdCommand.class, msg -> {
@@ -131,19 +131,19 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                             .onSuccess(ad -> getContext().getLog().debug("Successfully saved Ad: {}", ad));
                     return Behaviors.same();
                 })
-                .onMessage(SaveUserCommand.class, msg -> {
-                    CreateUserUseCase.Request req = new CreateUserUseCase.Request();
-                    req.setUser(msg.getUser());
+                .onMessage(SaveChatCommand.class, msg -> {
+                    CreateChatUseCase.Request req = new CreateChatUseCase.Request();
+                    req.setChat(msg.getChat());
                     Try.of(() -> this.createUser.execute(req))
-                            .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
+                            .onFailure(CreateChatUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
                 })
-                .onMessage(UpdateUserCommand.class, msg -> {
-                    UpdateUserUseCase.Request req = new UpdateUserUseCase.Request();
-                    req.setUser(msg.getUser());
+                .onMessage(UpdateChatCommand.class, msg -> {
+                    UpdateChatUseCase.Request req = new UpdateChatUseCase.Request();
+                    req.setChat(msg.getChat());
                     Try.of(() -> this.updateUser.execute(req))
-                            .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
+                            .onFailure(CreateChatUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
                 })

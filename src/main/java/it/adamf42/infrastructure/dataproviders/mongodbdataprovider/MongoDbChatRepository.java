@@ -2,29 +2,29 @@ package it.adamf42.infrastructure.dataproviders.mongodbdataprovider;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import it.adamf42.core.usecases.user.repositories.UserRepository;
+import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import org.bson.Document;
 
-public class MongoDbUserRepository implements UserRepository {
+public class MongoDbChatRepository implements ChatRepository {
 
     private final MongoCollection<Document> userCollection;
 
-    public MongoDbUserRepository(MongoCollection<Document> userCollection) {
+    public MongoDbChatRepository(MongoCollection<Document> userCollection) {
         this.userCollection = userCollection;
     }
 
     @Override
-    public DbUser save(DbUser dbUser) {
-        Document userDocument = new Document("chatId", dbUser.getChatId()).append("maxPrice", dbUser.getMaxPrice())
-                .append("minPrice", dbUser.getMinPrice()).append("city", dbUser.getCity());
+    public DbChat save(DbChat dbChat) {
+        Document userDocument = new Document("chatId", dbChat.getChatId()).append("maxPrice", dbChat.getMaxPrice())
+                .append("minPrice", dbChat.getMinPrice()).append("city", dbChat.getCity());
 
         userCollection.insertOne(userDocument);
 
-        return dbUser;
+        return dbChat;
     }
 
     @Override
-    public DbUser findByChatId(String chatId) {
+    public DbChat findByChatId(String chatId) {
         Document query = new Document("chatId", chatId);
 
         try (MongoCursor<Document> cursor = userCollection.find(query).iterator()) {
@@ -46,21 +46,21 @@ public class MongoDbUserRepository implements UserRepository {
     }
 
     @Override
-    public DbUser update(DbUser dbUser) {
-        Document query = new Document("chatId", dbUser.getChatId());
+    public DbChat update(DbChat dbChat) {
+        Document query = new Document("chatId", dbChat.getChatId());
         Document update = new Document();
 
         // Update only non-null fields
-        if (dbUser.getMaxPrice() != null) {
-            update.append("maxPrice", dbUser.getMaxPrice());
+        if (dbChat.getMaxPrice() != null) {
+            update.append("maxPrice", dbChat.getMaxPrice());
         }
 
-        if (dbUser.getMinPrice() != null) {
-            update.append("minPrice", dbUser.getMinPrice());
+        if (dbChat.getMinPrice() != null) {
+            update.append("minPrice", dbChat.getMinPrice());
         }
 
-        if (dbUser.getCity() != null && !dbUser.getCity().isEmpty()) {
-            update.append("city", dbUser.getCity());
+        if (dbChat.getCity() != null && !dbChat.getCity().isEmpty()) {
+            update.append("city", dbChat.getCity());
         }
 
         if (!update.isEmpty()) {
@@ -68,11 +68,11 @@ public class MongoDbUserRepository implements UserRepository {
             userCollection.updateOne(query, updateQuery);
         }
 
-        return dbUser;
+        return dbChat;
     }
 
-    private DbUser documentToDbUser(Document document) {
-        return new DbUser(document.getLong("chatId"), document.getInteger("maxPrice"),
+    private DbChat documentToDbUser(Document document) {
+        return new DbChat(document.getLong("chatId"), document.getInteger("maxPrice"),
                 document.getInteger("minPrice"), document.getString("city"));
     }
 }

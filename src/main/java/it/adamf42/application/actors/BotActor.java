@@ -9,7 +9,7 @@ import akka.actor.typed.javadsl.Receive;
 import akka.japi.function.Function;
 import io.vavr.control.Try;
 import it.adamf42.core.domain.ad.Ad;
-import it.adamf42.core.domain.user.User;
+import it.adamf42.core.domain.chat.Chat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -258,12 +258,12 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Function<UserMsgCommand, Behavior<Command>> onUserMsgCommand() {
         return msg -> {
-            User usr = new User();
+            Chat usr = new Chat();
             usr.setChatId(msg.getChatId());
             getContext().getLog().debug("[onUserMsgCommand] Received {} on chatId {}", msg.getCmd(), msg.chatId);
             switch (msg.getCmd()) {
                 case START:
-                    this.databaseActor.tell(new DatabaseActor.SaveUserCommand(usr));
+                    this.databaseActor.tell(new DatabaseActor.SaveChatCommand(usr));
                     this.chatStatusMap.put(usr.getChatId(), ChatStatus.FREE);
                     break;
                 case MIN:
@@ -282,7 +282,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Function<UserInputMsgCommand, Behavior<Command>> onUserInputMsgCommand(TelegramBot bot) {
         return msg -> {
-            User usr = new User();
+            Chat usr = new Chat();
             usr.setChatId(msg.getChatId());
             getContext().getLog().debug("[onUserInputMsgCommand] Received {} on chatId {}", msg.getText(), msg.chatId);
 
@@ -291,13 +291,13 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                     Try.of(() -> Integer.valueOf(msg.getText()))
                             .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
                             .andThen(usr::setMaxPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateUserCommand(usr)));
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(usr)));
                     break;
                 case UPDATE_MIN:
                     Try.of(() -> Integer.valueOf(msg.getText()))
                             .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
                             .andThen(usr::setMinPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateUserCommand(usr)));
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(usr)));
                     break;
                 default:
                     break;

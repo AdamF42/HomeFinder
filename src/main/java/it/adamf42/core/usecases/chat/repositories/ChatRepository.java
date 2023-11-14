@@ -1,21 +1,21 @@
-package it.adamf42.core.usecases.user.repositories;
+package it.adamf42.core.usecases.chat.repositories;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-public interface UserRepository {
+public interface ChatRepository {
 
-	DbUser save(DbUser DbUser);
+	DbChat save(DbChat DbChat);
 
-	DbUser findByChatId(String chatId);
+	DbChat findByChatId(String chatId);
 
 	boolean existsByChatId(Long chatId);
 
-	DbUser update(DbUser DbUser);
+	DbChat update(DbChat DbChat);
 
 	@Data
 	@AllArgsConstructor
-	class DbUser {
+	class DbChat {
 		private Long chatId;
 		private Integer maxPrice;
 		private Integer minPrice;

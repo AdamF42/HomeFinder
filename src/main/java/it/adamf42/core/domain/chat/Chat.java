@@ -1,9 +1,9 @@
-package it.adamf42.core.domain.user;
+package it.adamf42.core.domain.chat;
 
 import lombok.Data;
 
 @Data
-public class User
+public class Chat
 {
 	Long chatId;
 	Integer maxPrice;
