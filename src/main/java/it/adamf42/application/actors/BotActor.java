@@ -1,10 +1,16 @@
 package it.adamf42.application.actors;
 
-import java.io.Serializable;
-import java.time.Duration;
-import java.util.LinkedList;
-import java.util.Queue;
-
+import akka.actor.typed.ActorRef;
+import akka.actor.typed.Behavior;
+import akka.actor.typed.javadsl.AbstractBehavior;
+import akka.actor.typed.javadsl.ActorContext;
+import akka.actor.typed.javadsl.Behaviors;
+import akka.actor.typed.javadsl.Receive;
+import akka.japi.function.Function;
+import it.adamf42.core.domain.ad.Ad;
+import it.adamf42.core.domain.user.User;
+import lombok.Data;
+import lombok.Getter;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,16 +18,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-import akka.actor.typed.ActorRef;
-import akka.actor.typed.Behavior;
-import akka.actor.typed.javadsl.AbstractBehavior;
-import akka.actor.typed.javadsl.ActorContext;
-import akka.actor.typed.javadsl.Behaviors;
-import akka.actor.typed.javadsl.Receive;
-import it.adamf42.core.domain.ad.Ad;
-import it.adamf42.core.domain.user.User;
-
-import lombok.Data;
+import java.io.Serializable;
+import java.time.Duration;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class BotActor extends AbstractBehavior<BotActor.Command> {
 
@@ -31,9 +31,11 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     private static class TelegramBot extends TelegramLongPollingBot {
 
         private final ActorRef<BotActor.Command> actor;
+        private final String token;
 
-        public TelegramBot(ActorRef<BotActor.Command> actor) {
+        public TelegramBot(ActorRef<BotActor.Command> actor, String token) {
             this.actor = actor;
+            this.token = token;
         }
 
         @Override
@@ -43,15 +45,18 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
         @Override
         public String getBotToken() {
-            return ""; // TODO: inject token
+            return token;
         }
 
         @Override
         public void onUpdateReceived(Update update) {
-            String msgtext = update.getMessage().getText(); //TODO check null
-            Long chatId = update.getMessage().getChatId(); //TODO check null
+            if (update == null || update.getMessage() == null || update.getMessage().getText() == null || update.getMessage().getChatId() == null) {
+                return;
+            }
+            String msgtext = update.getMessage().getText();
+            Long chatId = update.getMessage().getChatId();
 
-            if(UserMsgCommand.CommandType.isValidCommand(msgtext)) {
+            if (UserMsgCommand.CommandType.isValidCommand(msgtext)) {
                 this.actor.tell(new UserMsgCommand(UserMsgCommand.CommandType.fromString(msgtext), chatId));
             }
         }
@@ -71,18 +76,21 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Queue<SendMsgCommand> currentRequests = new LinkedList<>();
 
-	private final ActorRef<DatabaseActor.Command> databaseActor;
+    private final ActorRef<DatabaseActor.Command> databaseActor;
 
     private Object TIMER_KEY;
 
     public interface Command extends Serializable {
     }
 
+    @Data
     public static class StartCommand implements Command {
 
         private static final long serialVersionUID = 1L;
+        private final String token;
 
-        public StartCommand() {
+        public StartCommand(String token) {
+            this.token = token;
         }
     }
 
@@ -95,8 +103,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
         private final String chatId;
 
-        public SendMsgCommand(Ad text, String chatId)
-        {
+        public SendMsgCommand(Ad text, String chatId) {
             this.text = text;
             this.chatId = chatId;
         }
@@ -112,6 +119,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
         private final Long chatId;
 
+        @Getter
         public enum CommandType {
             START("/start"),
             MAX("/max"),
@@ -121,10 +129,6 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
             CommandType(String commandString) {
                 this.commandString = commandString;
-            }
-
-            public String getCommandString() {
-                return commandString;
             }
 
             // Function to verify if a string matches one of the command patterns
@@ -148,8 +152,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             }
         }
 
-        public UserMsgCommand(CommandType cmd, Long chatId)
-        {
+        public UserMsgCommand(CommandType cmd, Long chatId) {
             this.cmd = cmd;
             this.chatId = chatId;
         }
@@ -161,75 +164,96 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         private static final long serialVersionUID = 1L;
     }
 
-	// TODO: maybe it is better if the actors does not have any dep from their siblings
     public BotActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor) {
         super(context);
-		this.databaseActor = databaseActor;
+        this.databaseActor = databaseActor;
     }
 
-	public static Behavior<BotActor.Command> create(ActorRef<DatabaseActor.Command> databaseActor)
-	{
-		return Behaviors.setup(context -> new BotActor(context, databaseActor));
-	}
+    public static Behavior<BotActor.Command> create(ActorRef<DatabaseActor.Command> databaseActor) {
+        return Behaviors.setup(context -> new BotActor(context, databaseActor));
+    }
 
 
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(StartCommand.class, msg -> Behaviors.withTimers(timer -> {
-                            timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
-                            TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-                            TelegramBot bot = new TelegramBot(this.getContext().getSelf());
-                            api.registerBot(bot);
-                            getContext().getLog().info("Bot started");
-                            return running(bot);
-                        })
-                )
+                .onMessage(StartCommand.class, onStartCommand())
                 .build();
     }
 
     private Receive<Command> running(TelegramBot bot) {
-        getContext().getLog().info("running");
+        getContext().getLog().debug("running");
         return newReceiveBuilder()
-                .onMessage(SendMsgCommand.class, msg -> {
-                    currentRequests.add(msg);
-                    return Behaviors.same();
-                })
-                .onMessage(ProcessRequestCommand.class, msg -> {
-                    if (currentRequests.isEmpty()) {
-                        return idle(bot);
-                    }
-                    SendMsgCommand req = currentRequests.remove();
-                    bot.sendMsg(req.getChatId(), req.getText());
-                    return Behaviors.same();
-                })
-				.onMessage(UserMsgCommand.class, msg -> {
-					// TODO: check othe commands
-					User usr = new User();
-					usr.setChatId(msg.getChatId());
-					this.databaseActor.tell(new DatabaseActor.SaveUserCommand(usr));
-					return Behaviors.same();
-				})
+                .onMessage(SendMsgCommand.class, onSendMsgCommandWhileRunning())
+                .onMessage(ProcessRequestCommand.class, onProcessRequestCommand(bot))
+                .onMessage(UserMsgCommand.class, onUserMsgCommand())
                 .build();
     }
 
     private Receive<Command> idle(TelegramBot bot) {
         getContext().getLog().debug("idle");
         return newReceiveBuilder()
-                .onMessage(SendMsgCommand.class, msg -> Behaviors.withTimers(timer -> {
-                            timer.cancel(TIMER_KEY);
-                            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
-                            currentRequests.add(msg);
-                            return running(bot);
-                        })
-                )
-				.onMessage(UserMsgCommand.class, msg -> {
-					User usr = new User();
-					usr.setChatId(msg.getChatId());
-					this.databaseActor.tell(new DatabaseActor.SaveUserCommand(usr));
-					return Behaviors.same();
-				})
+                .onMessage(SendMsgCommand.class, onSendMsgCommandWhileIdle(bot))
+                .onMessage(UserMsgCommand.class, onUserMsgCommand())
                 .build();
+    }
+
+    private Function<StartCommand, Behavior<Command>> onStartCommand() {
+        getContext().getLog().info("start");
+        return msg -> Behaviors.withTimers(timer -> {
+            timer.cancel(TIMER_KEY);
+            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
+            TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
+            TelegramBot bot = new TelegramBot(this.getContext().getSelf(), msg.getToken());
+            api.registerBot(bot);
+            return running(bot);
+        });
+    }
+
+    private Function<ProcessRequestCommand, Behavior<Command>> onProcessRequestCommand(TelegramBot bot) {
+        return msg -> {
+            if (currentRequests.isEmpty()) {
+                return idle(bot);
+            }
+            SendMsgCommand req = currentRequests.remove();
+            bot.sendMsg(req.getChatId(), req.getText());
+            return Behaviors.same();
+        };
+    }
+
+    private Function<SendMsgCommand, Behavior<Command>> onSendMsgCommandWhileRunning() {
+        return msg -> {
+            currentRequests.add(msg);
+            return Behaviors.same();
+        };
+    }
+
+    private Function<UserMsgCommand, Behavior<Command>> onUserMsgCommand() {
+        return msg -> {
+            switch ( msg.getCmd())
+            {
+                case START:
+                    User usr = new User();
+                    usr.setChatId(msg.getChatId());
+                    this.databaseActor.tell(new DatabaseActor.SaveUserCommand(usr));
+                    break;
+                case MIN:
+                case MAX:
+                    break;
+                default:
+                    break;
+            }
+
+            return Behaviors.same();
+        };
+    }
+
+    private Function<SendMsgCommand, Behavior<Command>> onSendMsgCommandWhileIdle(TelegramBot bot) {
+        return msg -> Behaviors.withTimers(timer -> {
+            timer.cancel(TIMER_KEY);
+            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
+            currentRequests.add(msg);
+            return running(bot);
+        });
     }
 }
