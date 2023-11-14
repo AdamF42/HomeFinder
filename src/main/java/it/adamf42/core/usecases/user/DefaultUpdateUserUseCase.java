@@ -17,7 +17,7 @@ public class DefaultUpdateUserUseCase implements UpdateUserUseCase
 	public Response execute(Request requestData) throws NotPresentException
 	{
 		UserRepository.DbUser user = mapRequestToDbUser(requestData);
-		if (!this.UserRepository.existsByChatId(requestData.getChatId()))
+		if (!this.UserRepository.existsByChatId(requestData.getUser().getChatId()))
 		{
 			throw new NotPresentException();
 		}
@@ -26,13 +26,8 @@ public class DefaultUpdateUserUseCase implements UpdateUserUseCase
 
 	private static UserRepository.DbUser mapRequestToDbUser(Request requestData)
 	{
-		UserRepository.DbUser user = new UserRepository.DbUser(requestData.getChatId(), requestData.getMaxPrice(),
-		requestData.getMinPrice(), requestData.getCity());
-		user.setChatId(requestData.getChatId());
-		user.setCity(requestData.getCity());
-		user.setMaxPrice(requestData.getMaxPrice());
-		user.setMinPrice(requestData.getMinPrice());
-		return user;
+        return new UserRepository.DbUser(requestData.getUser().getChatId(), requestData.getUser().getMaxPrice(),
+				requestData.getUser().getMinPrice(), requestData.getUser().getCity());
 	}
 
 	private User mapDbUserToUser(UserRepository.DbUser dbUser)

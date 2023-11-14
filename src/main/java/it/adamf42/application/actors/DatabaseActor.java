@@ -132,13 +132,17 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     return Behaviors.same();
                 })
                 .onMessage(SaveUserCommand.class, msg -> {
-                    Try.of(() -> this.createUser.execute(userToCreateRequest(msg.getUser())))
+                    CreateUserUseCase.Request req = new CreateUserUseCase.Request();
+                    req.setUser(msg.getUser());
+                    Try.of(() -> this.createUser.execute(req))
                             .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
                 })
                 .onMessage(UpdateUserCommand.class, msg -> {
-                    Try.of(() -> this.updateUser.execute(userToUpdateRequest(msg.getUser())))
+                    UpdateUserUseCase.Request req = new UpdateUserUseCase.Request();
+                    req.setUser(msg.getUser());
+                    Try.of(() -> this.updateUser.execute(req))
                             .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
@@ -161,24 +165,6 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         request.setBail(ad.getBail());
         request.setUrl(ad.getUrl());
         request.setPublisher(ad.getPublisher());
-        return request;
-    }
-
-    private static CreateUserUseCase.Request userToCreateRequest(User user) {
-        CreateUserUseCase.Request request = new CreateUserUseCase.Request();
-        request.setChatId(user.getChatId());
-        request.setMaxPrice(user.getMaxPrice());
-        request.setCity(user.getCity());
-        request.setMinPrice(user.getMinPrice());
-        return request;
-    }
-
-    private static UpdateUserUseCase.Request userToUpdateRequest(User user) {
-        UpdateUserUseCase.Request request = new UpdateUserUseCase.Request();
-        request.setChatId(user.getChatId());
-        request.setMaxPrice(user.getMaxPrice());
-        request.setCity(user.getCity());
-        request.setMinPrice(user.getMinPrice());
         return request;
     }
 

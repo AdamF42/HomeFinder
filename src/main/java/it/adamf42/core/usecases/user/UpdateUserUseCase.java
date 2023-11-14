@@ -9,10 +9,7 @@ public interface UpdateUserUseCase
 	@Data
 	class Request
 	{
-		private Long chatId;
-		private Integer maxPrice;
-		private Integer minPrice;
-		private String city;
+		private User user;
 	}
 
 	@Data
