@@ -20,6 +20,8 @@ import it.adamf42.core.usecases.ad.DefaultCreateAdUseCase;
 import it.adamf42.core.usecases.ad.repositories.AdRepository;
 import it.adamf42.core.usecases.user.CreateUserUseCase;
 import it.adamf42.core.usecases.user.DefaultCreateUserUseCase;
+import it.adamf42.core.usecases.user.DefaultUpdateUserUseCase;
+import it.adamf42.core.usecases.user.UpdateUserUseCase;
 import it.adamf42.core.usecases.user.repositories.UserRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbUserRepository;
@@ -37,6 +39,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
 
     private CreateAdUseCase createAd;
     private CreateUserUseCase createUser;
+    private UpdateUserUseCase updateUser;
 
     public interface Command extends Serializable {
     }
@@ -119,6 +122,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     MongoCollection<Document> usersCollection = database.getCollection("users");
                     UserRepository userRepository = new MongoDbUserRepository(usersCollection);
                     this.createUser = new DefaultCreateUserUseCase(userRepository);
+                    this.updateUser = new DefaultUpdateUserUseCase(userRepository);
                     return Behaviors.same();
                 })
                 .onMessage(SaveAdCommand.class, msg -> {
@@ -128,13 +132,15 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     return Behaviors.same();
                 })
                 .onMessage(SaveUserCommand.class, msg -> {
-                    Try.of(() -> this.createUser.execute(userToRequest(msg.getUser())))
+                    Try.of(() -> this.createUser.execute(userToCreateRequest(msg.getUser())))
                             .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
                 })
                 .onMessage(UpdateUserCommand.class, msg -> {
-                    // TODO: implement updateUser
+                    Try.of(() -> this.updateUser.execute(userToUpdateRequest(msg.getUser())))
+                            .onFailure(CreateUserUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
+                            .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
                     return Behaviors.same();
                 })
                 .build();
@@ -158,8 +164,17 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         return request;
     }
 
-    private static CreateUserUseCase.Request userToRequest(User user) {
+    private static CreateUserUseCase.Request userToCreateRequest(User user) {
         CreateUserUseCase.Request request = new CreateUserUseCase.Request();
+        request.setChatId(user.getChatId());
+        request.setMaxPrice(user.getMaxPrice());
+        request.setCity(user.getCity());
+        request.setMinPrice(user.getMinPrice());
+        return request;
+    }
+
+    private static UpdateUserUseCase.Request userToUpdateRequest(User user) {
+        UpdateUserUseCase.Request request = new UpdateUserUseCase.Request();
         request.setChatId(user.getChatId());
         request.setMaxPrice(user.getMaxPrice());
         request.setCity(user.getCity());
