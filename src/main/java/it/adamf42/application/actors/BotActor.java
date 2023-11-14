@@ -7,10 +7,13 @@ import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
 import akka.japi.function.Function;
+import io.vavr.control.Try;
 import it.adamf42.core.domain.ad.Ad;
 import it.adamf42.core.domain.user.User;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import org.slf4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,7 +23,9 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.Serializable;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 public class BotActor extends AbstractBehavior<BotActor.Command> {
@@ -28,24 +33,29 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
     private static final long MSG_INTERVAL = 5;
 
+    private enum ChatStatus {
+        FREE,
+        UPDATE_MIN,
+
+        UPDATE_MAX
+    }
+
+    private Map<Long, ChatStatus> chatStatusMap = new HashMap<>();
+
     private static class TelegramBot extends TelegramLongPollingBot {
 
         private final ActorRef<BotActor.Command> actor;
-        private final String token;
+        private final Logger logger;
 
-        public TelegramBot(ActorRef<BotActor.Command> actor, String token) {
+        public TelegramBot(String token, ActorRef<BotActor.Command> actor, Logger logger) {
+            super(token);
             this.actor = actor;
-            this.token = token;
+            this.logger = logger;
         }
 
         @Override
         public String getBotUsername() {
             return "TelegramBot";
-        }
-
-        @Override
-        public String getBotToken() {
-            return token;
         }
 
         @Override
@@ -58,14 +68,20 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
             if (UserMsgCommand.CommandType.isValidCommand(msgtext)) {
                 this.actor.tell(new UserMsgCommand(UserMsgCommand.CommandType.fromString(msgtext), chatId));
+            } else {
+                this.actor.tell(new UserInputMsgCommand(msgtext, chatId));
             }
         }
 
-        public void sendMsg(String chatId, Ad msg) throws TelegramApiException {
+        public void sendMsg(Long chatId, String msg) {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(chatId);
-            sendMessage.setText(msg.getUrl());
-            this.execute(sendMessage);
+            sendMessage.setText(msg);
+            try {
+                this.execute(sendMessage);
+            } catch (TelegramApiException e) {
+                logger.error("Unable to send msg {} to chat {}", msg, chatId, e);
+            }
         }
 
         @Override
@@ -99,12 +115,12 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
         private static final long serialVersionUID = 1L;
 
-        private final Ad text;
+        private final Ad ad;
 
-        private final String chatId;
+        private final Long chatId;
 
-        public SendMsgCommand(Ad text, String chatId) {
-            this.text = text;
+        public SendMsgCommand(Ad ad, Long chatId) {
+            this.ad = ad;
             this.chatId = chatId;
         }
 
@@ -159,6 +175,16 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     }
 
+    @Data
+    @AllArgsConstructor
+    public static class UserInputMsgCommand implements Command {
+
+        private static final long serialVersionUID = 1L;
+
+        private final String text;
+
+        private final Long chatId;
+    }
 
     public static class ProcessRequestCommand implements Command {
         private static final long serialVersionUID = 1L;
@@ -187,6 +213,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                 .onMessage(SendMsgCommand.class, onSendMsgCommandWhileRunning())
                 .onMessage(ProcessRequestCommand.class, onProcessRequestCommand(bot))
                 .onMessage(UserMsgCommand.class, onUserMsgCommand())
+                .onMessage(UserInputMsgCommand.class, onUserInputMsgCommand(bot))
                 .build();
     }
 
@@ -195,6 +222,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         return newReceiveBuilder()
                 .onMessage(SendMsgCommand.class, onSendMsgCommandWhileIdle(bot))
                 .onMessage(UserMsgCommand.class, onUserMsgCommand())
+                .onMessage(UserInputMsgCommand.class, onUserInputMsgCommand(bot))
                 .build();
     }
 
@@ -204,7 +232,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             timer.cancel(TIMER_KEY);
             timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
-            TelegramBot bot = new TelegramBot(this.getContext().getSelf(), msg.getToken());
+            TelegramBot bot = new TelegramBot(msg.getToken(), this.getContext().getSelf(), this.getContext().getLog());
             api.registerBot(bot);
             return running(bot);
         });
@@ -216,7 +244,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                 return idle(bot);
             }
             SendMsgCommand req = currentRequests.remove();
-            bot.sendMsg(req.getChatId(), req.getText());
+            bot.sendMsg(req.getChatId(), req.getAd().getUrl());
             return Behaviors.same();
         };
     }
@@ -230,19 +258,51 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Function<UserMsgCommand, Behavior<Command>> onUserMsgCommand() {
         return msg -> {
-            switch ( msg.getCmd())
-            {
+            User usr = new User();
+            usr.setChatId(msg.getChatId());
+            getContext().getLog().debug("[onUserMsgCommand] Received {} on chatId {}", msg.getCmd(), msg.chatId);
+            switch (msg.getCmd()) {
                 case START:
-                    User usr = new User();
-                    usr.setChatId(msg.getChatId());
                     this.databaseActor.tell(new DatabaseActor.SaveUserCommand(usr));
+                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.FREE);
                     break;
                 case MIN:
+                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.UPDATE_MIN);
+                    break;
                 case MAX:
+                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.UPDATE_MAX);
                     break;
                 default:
                     break;
             }
+
+            return Behaviors.same();
+        };
+    }
+
+    private Function<UserInputMsgCommand, Behavior<Command>> onUserInputMsgCommand(TelegramBot bot) {
+        return msg -> {
+            User usr = new User();
+            usr.setChatId(msg.getChatId());
+            getContext().getLog().debug("[onUserInputMsgCommand] Received {} on chatId {}", msg.getText(), msg.chatId);
+
+            switch (this.chatStatusMap.getOrDefault(msg.getChatId(), ChatStatus.FREE)) {
+                case UPDATE_MAX:
+                    Try.of(() -> Integer.valueOf(msg.getText()))
+                            .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
+                            .andThen(usr::setMaxPrice)
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateUserCommand(usr)));
+                    break;
+                case UPDATE_MIN:
+                    Try.of(() -> Integer.valueOf(msg.getText()))
+                            .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
+                            .andThen(usr::setMinPrice)
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateUserCommand(usr)));
+                    break;
+                default:
+                    break;
+            }
+            this.chatStatusMap.put(usr.getChatId(), ChatStatus.FREE);
 
             return Behaviors.same();
         };
