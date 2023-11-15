@@ -16,11 +16,11 @@ public class DefaultGetChatUseCase implements GetChatUseCase
 	@Override
 	public Response execute(Request requestData) throws NotPresentException
 	{
-		if (!this.ChatRepository.existsByChatId(requestData.getChat().getChatId()))
+		if (!this.ChatRepository.existsByChatId(requestData.getChatId()))
 		{
 			throw new NotPresentException();
 		}
-		return new Response(mapDbUserToUser(this.ChatRepository.findByChatId(requestData.getChat().getChatId())));
+		return new Response(mapDbUserToUser(this.ChatRepository.findByChatId(requestData.getChatId())));
 	}
 
 

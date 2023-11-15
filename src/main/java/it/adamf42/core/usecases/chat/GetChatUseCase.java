@@ -9,7 +9,7 @@ public interface GetChatUseCase
 	@Data
 	class Request
 	{
-		private Chat chat;
+		private Long chatId;
 	}
 
 	@Data

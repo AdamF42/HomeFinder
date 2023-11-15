@@ -18,10 +18,7 @@ import it.adamf42.core.domain.chat.Chat;
 import it.adamf42.core.usecases.ad.CreateAdUseCase;
 import it.adamf42.core.usecases.ad.DefaultCreateAdUseCase;
 import it.adamf42.core.usecases.ad.repositories.AdRepository;
-import it.adamf42.core.usecases.chat.CreateChatUseCase;
-import it.adamf42.core.usecases.chat.DefaultCreateChatUseCase;
-import it.adamf42.core.usecases.chat.DefaultUpdateChatUseCase;
-import it.adamf42.core.usecases.chat.UpdateChatUseCase;
+import it.adamf42.core.usecases.chat.*;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbChatRepository;
@@ -40,6 +37,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
     private CreateAdUseCase createAd;
     private CreateChatUseCase createUser;
     private UpdateChatUseCase updateUser;
+    private GetChatUseCase getChat;
 
     public interface Command extends Serializable {
     }
@@ -95,6 +93,21 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         }
     }
 
+    public static class GetChatCommand implements DatabaseActor.Command {
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        private final Long chatId;
+
+        @Getter
+        private final ActorRef<BotActor.Command> bot;
+
+        public GetChatCommand(Long chatId, ActorRef<BotActor.Command> bot) {
+            this.chatId = chatId;
+            this.bot = bot;
+        }
+    }
+
     public DatabaseActor(ActorContext<DatabaseActor.Command> context) {
         super(context);
     }
@@ -119,10 +132,11 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     MongoCollection<Document> adsCollection = database.getCollection("ads");
                     AdRepository adRepository = new MongoDbAdRepository(adsCollection);
                     this.createAd = new DefaultCreateAdUseCase(adRepository);
-                    MongoCollection<Document> usersCollection = database.getCollection("users");
-                    ChatRepository chatRepository = new MongoDbChatRepository(usersCollection);
+                    MongoCollection<Document> chatsCollection = database.getCollection("chats");
+                    ChatRepository chatRepository = new MongoDbChatRepository(chatsCollection);
                     this.createUser = new DefaultCreateChatUseCase(chatRepository);
                     this.updateUser = new DefaultUpdateChatUseCase(chatRepository);
+                    this.getChat = new DefaultGetChatUseCase(chatRepository);
                     return Behaviors.same();
                 })
                 .onMessage(SaveAdCommand.class, msg -> {
@@ -136,15 +150,24 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     req.setChat(msg.getChat());
                     Try.of(() -> this.createUser.execute(req))
                             .onFailure(CreateChatUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
-                            .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
+                            .onSuccess(chat -> getContext().getLog().debug("Successfully saved chat: {}", chat));
                     return Behaviors.same();
                 })
                 .onMessage(UpdateChatCommand.class, msg -> {
                     UpdateChatUseCase.Request req = new UpdateChatUseCase.Request();
                     req.setChat(msg.getChat());
                     Try.of(() -> this.updateUser.execute(req))
-                            .onFailure(CreateChatUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
-                            .onSuccess(user -> getContext().getLog().debug("Successfully saved user: {}", user));
+                            .onFailure(UpdateChatUseCase.NotPresentException.class, e -> getContext().getLog().debug("Chat {} Not present", msg.getChat().getChatId()))
+                            .onSuccess(chat -> getContext().getLog().debug("Successfully updated chat: {}", chat));
+                    return Behaviors.same();
+                })
+                .onMessage(GetChatCommand.class, msg -> {
+                    GetChatUseCase.Request req = new GetChatUseCase.Request();
+                    req.setChatId(msg.getChatId());
+                    Try.of(() -> this.getChat.execute(req))
+                            .onFailure(GetChatUseCase.NotPresentException.class, e -> getContext().getLog().debug("Chat {} Not present", msg.getChatId()))
+                            .onSuccess(chat -> getContext().getLog().debug("Successfully retrieved chat: {}", chat))
+                            .andThen(chat -> msg.getBot().tell(new BotActor.GetChatResponseCommand(chat.getChat(), chat.getChat().getChatId())));
                     return Behaviors.same();
                 })
                 .build();

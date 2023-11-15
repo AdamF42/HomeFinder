@@ -31,7 +31,7 @@ import java.util.Queue;
 public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
-    private static final long MSG_INTERVAL = 500;
+    private static final long MSG_INTERVAL = 40;
 
     private enum ChatStatus {
         FREE,
@@ -65,8 +65,8 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             String msgtext = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
 
-            if (UserMsgCommand.CommandType.isValidCommand(msgtext)) {
-                this.actor.tell(new UserMsgCommand(UserMsgCommand.CommandType.fromString(msgtext), chatId));
+            if (MsgFromChatCommand.CommandType.isValidCommand(msgtext)) {
+                this.actor.tell(new MsgFromChatCommand(MsgFromChatCommand.CommandType.fromString(msgtext), chatId));
             } else {
                 this.actor.tell(new UserInputMsgCommand(msgtext, chatId));
             }
@@ -76,6 +76,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             SendMessage sendMessage = new SendMessage();
             sendMessage.setChatId(chatId);
             sendMessage.setText(msg);
+            sendMessage.enableHtml(true);
             try {
                 this.execute(sendMessage);
             } catch (TelegramApiException e) {
@@ -89,7 +90,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         }
     }
 
-    private Queue<SendMsgCommand> currentRequests = new LinkedList<>();
+    private Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
 
     private final ActorRef<DatabaseActor.Command> databaseActor;
 
@@ -110,7 +111,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     }
 
     @Data
-    public static class SendMsgCommand implements Command {
+    public static class SendAdToChatCommand implements Command {
 
         private static final long serialVersionUID = 1L;
 
@@ -118,7 +119,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
         private final Long chatId;
 
-        public SendMsgCommand(Ad ad, Long chatId) {
+        public SendAdToChatCommand(Ad ad, Long chatId) {
             this.ad = ad;
             this.chatId = chatId;
         }
@@ -126,7 +127,39 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     }
 
     @Data
-    public static class UserMsgCommand implements Command {
+    public static class SendMsgChatCommand implements Command {
+
+        private static final long serialVersionUID = 1L;
+
+        private final String text;
+
+        private final Long chatId;
+
+        public SendMsgChatCommand(String text, Long chatId) {
+            this.text = text;
+            this.chatId = chatId;
+        }
+
+    }
+
+    @Data
+    public static class GetChatResponseCommand implements Command {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Chat chat;
+
+        private final Long chatId;
+
+        public GetChatResponseCommand(Chat chat, Long chatId) {
+            this.chat = chat;
+            this.chatId = chatId;
+        }
+
+    }
+
+    @Data
+    public static class MsgFromChatCommand implements Command {
 
         private static final long serialVersionUID = 1L;
 
@@ -138,7 +171,8 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         public enum CommandType {
             START("/start"),
             MAX("/max"),
-            MIN("/min");
+            MIN("/min"),
+            INFO("/info");
 
             private final String commandString;
 
@@ -167,7 +201,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             }
         }
 
-        public UserMsgCommand(CommandType cmd, Long chatId) {
+        public MsgFromChatCommand(CommandType cmd, Long chatId) {
             this.cmd = cmd;
             this.chatId = chatId;
         }
@@ -209,9 +243,11 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     private Receive<Command> running(TelegramBot bot) {
         getContext().getLog().debug("running");
         return newReceiveBuilder()
-                .onMessage(SendMsgCommand.class, onSendMsgCommandWhileRunning())
+                .onMessage(SendAdToChatCommand.class, onSendAdToChatCommand())
+                .onMessage(SendMsgChatCommand.class, onSendMsgChatCommand())
+                .onMessage(GetChatResponseCommand.class, onGetChatResponseCommand())
                 .onMessage(ProcessRequestCommand.class, onProcessRequestCommand(bot))
-                .onMessage(UserMsgCommand.class, onUserMsgCommand())
+                .onMessage(MsgFromChatCommand.class, onUserMsgCommand())
                 .onMessage(UserInputMsgCommand.class, onUserInputMsgCommand(bot))
                 .build();
     }
@@ -233,34 +269,60 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             if (currentRequests.isEmpty()) {
                 return Behaviors.same();
             }
-            SendMsgCommand req = currentRequests.remove();
-            bot.sendMsg(req.getChatId(), req.getAd().getUrl());
+            SendMsgChatCommand req = currentRequests.remove();
+            bot.sendMsg(req.getChatId(), req.getText());
             return Behaviors.same();
         };
     }
 
-    private Function<SendMsgCommand, Behavior<Command>> onSendMsgCommandWhileRunning() {
+    private Function<SendAdToChatCommand, Behavior<Command>> onSendAdToChatCommand() {
+        return msg -> {
+            currentRequests.add(new SendMsgChatCommand(msg.getAd().getUrl(), msg.getChatId()));
+            return Behaviors.same();
+        };
+    }
+
+    private Function<SendMsgChatCommand, Behavior<Command>> onSendMsgChatCommand() {
         return msg -> {
             currentRequests.add(msg);
             return Behaviors.same();
         };
     }
 
-    private Function<UserMsgCommand, Behavior<Command>> onUserMsgCommand() {
+    private Function<GetChatResponseCommand, Behavior<Command>> onGetChatResponseCommand() {
         return msg -> {
-            Chat usr = new Chat();
-            usr.setChatId(msg.getChatId());
+            Chat chat = msg.getChat();
+            String newLine = System.getProperty("line.separator");
+            String text = "<b>ChatID:</b> " + chat.getChatId() +
+                    newLine +
+                    "<b>Max price:</b> " + chat.getMaxPrice() +
+                    newLine +
+                    "<b>Min price:</b> " + chat.getMinPrice() +
+                    newLine;
+            currentRequests.add(new SendMsgChatCommand(text, msg.getChatId()));
+            return Behaviors.same();
+        };
+    }
+
+    private Function<MsgFromChatCommand, Behavior<Command>> onUserMsgCommand() {
+        return msg -> {
+            Chat chat = new Chat();
+            chat.setChatId(msg.getChatId());
             getContext().getLog().debug("[onUserMsgCommand] Received {} on chatId {}", msg.getCmd(), msg.chatId);
             switch (msg.getCmd()) {
                 case START:
-                    this.databaseActor.tell(new DatabaseActor.SaveChatCommand(usr));
-                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.FREE);
+                    this.databaseActor.tell(new DatabaseActor.SaveChatCommand(chat));
+                    this.chatStatusMap.put(chat.getChatId(), ChatStatus.FREE);
+                    break;
+                case INFO:
+                    this.databaseActor.tell(new DatabaseActor.GetChatCommand(chat.getChatId(), this.getContext().getSelf()));
+                    this.chatStatusMap.put(chat.getChatId(), ChatStatus.FREE);
                     break;
                 case MIN:
-                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.UPDATE_MIN);
+                    this.chatStatusMap.put(chat.getChatId(), ChatStatus.UPDATE_MIN);
                     break;
                 case MAX:
-                    this.chatStatusMap.put(usr.getChatId(), ChatStatus.UPDATE_MAX);
+                    this.chatStatusMap.put(chat.getChatId(), ChatStatus.UPDATE_MAX);
                     break;
                 default:
                     break;
@@ -272,27 +334,27 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Function<UserInputMsgCommand, Behavior<Command>> onUserInputMsgCommand(TelegramBot bot) {
         return msg -> {
-            Chat usr = new Chat();
-            usr.setChatId(msg.getChatId());
+            Chat chat = new Chat();
+            chat.setChatId(msg.getChatId());
             getContext().getLog().debug("[onUserInputMsgCommand] Received {} on chatId {}", msg.getText(), msg.chatId);
 
             switch (this.chatStatusMap.getOrDefault(msg.getChatId(), ChatStatus.FREE)) {
                 case UPDATE_MAX:
                     Try.of(() -> Integer.valueOf(msg.getText()))
-                            .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
-                            .andThen(usr::setMaxPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(usr)));
+                            .onFailure(e -> bot.sendMsg(chat.getChatId(), "Value not valid"))
+                            .andThen(chat::setMaxPrice)
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat)));
                     break;
                 case UPDATE_MIN:
                     Try.of(() -> Integer.valueOf(msg.getText()))
-                            .onFailure(e -> bot.sendMsg(usr.getChatId(), "Value not valid"))
-                            .andThen(usr::setMinPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(usr)));
+                            .onFailure(e -> bot.sendMsg(chat.getChatId(), "Value not valid"))
+                            .andThen(chat::setMinPrice)
+                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat)));
                     break;
                 default:
                     break;
             }
-            this.chatStatusMap.put(usr.getChatId(), ChatStatus.FREE);
+            this.chatStatusMap.put(chat.getChatId(), ChatStatus.FREE);
 
             return Behaviors.same();
         };

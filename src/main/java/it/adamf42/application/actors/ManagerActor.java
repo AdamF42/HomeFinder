@@ -37,7 +37,6 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                 Behaviors.supervise(KafkaActor.create(db)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<KafkaActor.Command> kafka = getContext().spawn(kafkaBehavior, "kafka");
 
-
         Behavior<BotActor.Command> botBehavior =
                 Behaviors.supervise(BotActor.create(db)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<BotActor.Command> bot = getContext().spawn(botBehavior, "bot");
