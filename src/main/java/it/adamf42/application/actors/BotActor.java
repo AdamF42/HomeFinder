@@ -216,15 +216,6 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                 .build();
     }
 
-    private Receive<Command> idle(TelegramBot bot) {
-        getContext().getLog().debug("idle");
-        return newReceiveBuilder()
-                .onMessage(SendMsgCommand.class, onSendMsgCommandWhileIdle(bot))
-                .onMessage(UserMsgCommand.class, onUserMsgCommand())
-                .onMessage(UserInputMsgCommand.class, onUserInputMsgCommand(bot))
-                .build();
-    }
-
     private Function<StartCommand, Behavior<Command>> onStartCommand() {
         getContext().getLog().info("start");
         return msg -> Behaviors.withTimers(timer -> {
@@ -240,7 +231,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     private Function<ProcessRequestCommand, Behavior<Command>> onProcessRequestCommand(TelegramBot bot) {
         return msg -> {
             if (currentRequests.isEmpty()) {
-                return idle(bot);
+                return Behaviors.same();
             }
             SendMsgCommand req = currentRequests.remove();
             bot.sendMsg(req.getChatId(), req.getAd().getUrl());
@@ -305,14 +296,5 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
             return Behaviors.same();
         };
-    }
-
-    private Function<SendMsgCommand, Behavior<Command>> onSendMsgCommandWhileIdle(TelegramBot bot) {
-        return msg -> Behaviors.withTimers(timer -> {
-            timer.cancel(TIMER_KEY);
-            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofMillis(MSG_INTERVAL));
-            currentRequests.add(msg);
-            return running(bot);
-        });
     }
 }
