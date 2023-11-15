@@ -28,31 +28,37 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
 
     @Override
     public Receive<Command> createReceive() {
+
+        Behavior<ChatManagerActor.Command> chatManagerBehavior =
+                Behaviors.supervise(ChatManagerActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+        ActorRef<ChatManagerActor.Command> chatManager = getContext().spawn(chatManagerBehavior, "chatman");
+
         Behavior<DatabaseActor.Command> dbBehavior =
                 Behaviors.supervise(DatabaseActor.create()).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<DatabaseActor.Command> db = getContext().spawn(dbBehavior, "database");
         getContext().watch(db);
 
         Behavior<KafkaActor.Command> kafkaBehavior =
-                Behaviors.supervise(KafkaActor.create(db)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+                Behaviors.supervise(KafkaActor.create(db, chatManager)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<KafkaActor.Command> kafka = getContext().spawn(kafkaBehavior, "kafka");
 
         Behavior<BotActor.Command> botBehavior =
-                Behaviors.supervise(BotActor.create(db)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+                Behaviors.supervise(BotActor.create(db, chatManager)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<BotActor.Command> bot = getContext().spawn(botBehavior, "bot");
+
 
         return newReceiveBuilder()
                 .onMessage(ManagerActor.BootCommand.class, msg -> {
                     db.tell(new DatabaseActor.BootCommand(System.getenv(MONGO_CONN_STR), System.getenv(MONGO_DATABASE), getContext().getSelf()));
                     kafka.tell(new KafkaActor.BootCommand());
                     bot.tell(new BotActor.StartCommand(System.getenv(TG_TOKEN)));
+                    chatManager.tell(new ChatManagerActor.StartCommand(bot));
                     return Behaviors.same();
                 })
                 .build();
     }
 
-    public static Behavior<
-            ManagerActor.Command> create() {
+    public static Behavior<ManagerActor.Command> create() {
         return Behaviors.setup(ManagerActor::new);
     }
 

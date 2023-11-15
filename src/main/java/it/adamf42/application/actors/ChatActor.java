@@ -31,13 +31,33 @@ public class ChatActor extends AbstractBehavior<ChatActor.Command> {
         }
     }
 
+    public static class UpdateChatCommand implements Command {
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        private final Chat chat;
+
+        public UpdateChatCommand(Chat chat) {
+            this.chat = chat;
+        }
+    }
+
     private final ActorRef<BotActor.Command> bot;
-    private final Chat chat;
+    private Chat chat;
 
     private ChatActor(ActorContext<Command> context, ActorRef<BotActor.Command> bot, Chat chat) {
         super(context);
         this.bot = bot;
         this.chat = chat;
+
+//        ActorRef<ChatManagerActor.NewAdCommand> messageAdapter = context.messageAdapter(
+//                ChatManagerActor.NewAdCommand.class,
+//                d -> new NewAdCommand(d.getAd())
+//        );
+//
+//        context.getSystem().eventStream()
+//                .tell(new EventStream.Subscribe<>(ChatManagerActor.NewAdCommand.class, messageAdapter));
+
     }
 
     public static Behavior<ChatActor.Command> create(ActorRef<BotActor.Command> bot, Chat chat) {
@@ -47,18 +67,39 @@ public class ChatActor extends AbstractBehavior<ChatActor.Command> {
 
     @Override
     public Receive<Command> createReceive() {
-        return newReceiveBuilder().onMessage(NewAdCommand.class, msg -> {
-            Ad ad = msg.getAd();
-            AdChatValidator.ValidationResult res = isMinPriceRespected()
-                    .and(isMaxPriceRespected())
-                    .apply(ad, chat);
-
-            if (SUCCESS.equals(res)) {
-                bot.tell(new BotActor.SendAdToChatCommand(ad, chat.getChatId()));
-            }
-            return Behaviors.same();
-        }).build();
+        return running(this.chat);
     }
+
+    private Receive<Command> running(Chat runningChat) {
+        return newReceiveBuilder()
+                .onMessage(NewAdCommand.class, msg -> {
+                    Ad ad = msg.getAd();
+                    AdChatValidator.ValidationResult res = isMinPriceRespected()
+                            .and(isMaxPriceRespected())
+                            .apply(ad, runningChat);
+
+                    if (SUCCESS.equals(res)) {
+                        bot.tell(new BotActor.SendAdToChatCommand(ad, runningChat.getChatId()));
+                    }
+                    return running(runningChat);
+                })
+                .onMessage(UpdateChatCommand.class, msg -> {
+                    // TODO: should be readed from db ???
+                    Chat updatedChat = msg.getChat();
+                    if (updatedChat.getChatId() != null ) {
+                        runningChat.setChatId(updatedChat.getChatId());
+                    }
+                    if (updatedChat.getMaxPrice() != null) {
+                        runningChat.setMaxPrice(updatedChat.getMaxPrice());
+                    }
+                    if (updatedChat.getMinPrice() != null) {
+                        runningChat.setMinPrice(updatedChat.getMinPrice());
+                    }
+                    return running(runningChat);
+                })
+                .build();
+    }
+
 
     interface AdChatValidator extends BiFunction<Ad, Chat, AdChatValidator.ValidationResult> {
 
@@ -76,7 +117,7 @@ public class ChatActor extends AbstractBehavior<ChatActor.Command> {
                 if (chat.getMaxPrice() == null || ad.getPrice() == null) {
                     return SUCCESS;
                 }
-                return ad.getPrice() >= chat.getMaxPrice() ? SUCCESS : MAN_PRICE_NOT_RESPECTED;
+                return ad.getPrice() <= chat.getMaxPrice() ? SUCCESS : MAN_PRICE_NOT_RESPECTED;
             };
         }
 

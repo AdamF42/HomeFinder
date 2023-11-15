@@ -26,21 +26,23 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 {
 
 	private final ActorRef<DatabaseActor.Command> databaseActor;
+	private final ActorRef<ChatManagerActor.Command> chatManagerActor;
 	private final KafkaClient kafkaClient;
 	private Logger logger = getContext().getLog();
 
 	// Define a scheduler for running asynchronous tasks
 
-	private KafkaActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor)
+	private KafkaActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor)
 	{
 		super(context);
 		this.databaseActor = databaseActor;
+		this.chatManagerActor = chatManagerActor;
 		this.kafkaClient = new KafkaClient("localhost:29092", "ads", "ads-group", this::processKafkaMessage, logger); // TODO: configuration should be injected
 	}
 
-	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor)
+	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor)
 	{
-		return Behaviors.setup(context -> new KafkaActor(context, databaseActor));
+		return Behaviors.setup(context -> new KafkaActor(context, databaseActor, chatManagerActor));
 	}
 
 	// Define the command interface for KafkaActor
@@ -70,8 +72,8 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	private void processKafkaMessage(String partition, long offset, String key, Ad ad)
 	{
 		logger.info("Partition = {}, Offset = {}, Key = {}, Ad = {}", partition, offset, key, ad);
-		DatabaseActor.SaveAdCommand adReceivedCommand = new DatabaseActor.SaveAdCommand(ad);
-		databaseActor.tell(adReceivedCommand);
+		databaseActor.tell(new DatabaseActor.SaveAdCommand(ad));
+		chatManagerActor.tell(new ChatManagerActor.NewAdCommand(ad));
 	}
 
 	private static class KafkaClient extends Thread

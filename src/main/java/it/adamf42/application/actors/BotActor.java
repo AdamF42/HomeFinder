@@ -93,6 +93,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     private Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
 
     private final ActorRef<DatabaseActor.Command> databaseActor;
+    private final ActorRef<ChatManagerActor.Command> chatManagerActor;
 
     private Object TIMER_KEY;
 
@@ -223,13 +224,14 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         private static final long serialVersionUID = 1L;
     }
 
-    public BotActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor) {
+    public BotActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor) {
         super(context);
         this.databaseActor = databaseActor;
+        this.chatManagerActor = chatManagerActor;
     }
 
-    public static Behavior<BotActor.Command> create(ActorRef<DatabaseActor.Command> databaseActor) {
-        return Behaviors.setup(context -> new BotActor(context, databaseActor));
+    public static Behavior<BotActor.Command> create(ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor) {
+        return Behaviors.setup(context -> new BotActor(context, databaseActor, chatManagerActor));
     }
 
 
@@ -277,7 +279,17 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     private Function<SendAdToChatCommand, Behavior<Command>> onSendAdToChatCommand() {
         return msg -> {
-            currentRequests.add(new SendMsgChatCommand(msg.getAd().getUrl(), msg.getChatId()));
+            String newLine = System.getProperty("line.separator");
+            String text = "<b>Prezzo:</b> " + msg.getAd().getPrice() +
+                    newLine +
+                    "<b>Metri quadri:</b> " + msg.getAd().getSquareMeters() +
+                    newLine +
+                    "<b>Camere:</b> " + msg.getAd().getRooms() +
+                    newLine +
+                    "<b>Link:</b> " + msg.getAd().getUrl() +
+                    newLine;
+
+            currentRequests.add(new SendMsgChatCommand(text, msg.getChatId()));
             return Behaviors.same();
         };
     }
@@ -312,6 +324,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             switch (msg.getCmd()) {
                 case START:
                     this.databaseActor.tell(new DatabaseActor.SaveChatCommand(chat));
+                    this.chatManagerActor.tell(new ChatManagerActor.NewChatCommand(chat));
                     this.chatStatusMap.put(chat.getChatId(), ChatStatus.FREE);
                     break;
                 case INFO:
@@ -343,13 +356,19 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                     Try.of(() -> Integer.valueOf(msg.getText()))
                             .onFailure(e -> bot.sendMsg(chat.getChatId(), "Value not valid"))
                             .andThen(chat::setMaxPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat)));
+                            .andThen(() -> {
+                                this.chatManagerActor.tell(new ChatManagerActor.UpdateChatCommand(chat)); // TODO: understand how
+                                this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat));
+                            });
                     break;
                 case UPDATE_MIN:
                     Try.of(() -> Integer.valueOf(msg.getText()))
                             .onFailure(e -> bot.sendMsg(chat.getChatId(), "Value not valid"))
                             .andThen(chat::setMinPrice)
-                            .andThen(() -> this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat)));
+                            .andThen(() -> {
+                                this.chatManagerActor.tell(new ChatManagerActor.UpdateChatCommand(chat)); // TODO: understand how
+                                this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(chat));
+                            });
                     break;
                 default:
                     break;
