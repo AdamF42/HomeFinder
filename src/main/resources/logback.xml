@@ -21,7 +21,7 @@
     <logger name="org.mongodb.driver.cluster" level="ERROR"/>
     <logger name="org.mongodb.driver.protocol.command" level="ERROR"/>
     <logger name="org.mongodb.driver.connection" level="ERROR"/>
-
+    <logger name="org.apache.kafka" level="ERROR"/>
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
