@@ -3,7 +3,7 @@ package it.adamf42.core.usecases.chat;
 import it.adamf42.core.domain.chat.Chat;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 
-public class DefaultGetChatUseCase implements UpdateChatUseCase
+public class DefaultGetChatUseCase implements GetChatUseCase
 {
 
 	private final ChatRepository ChatRepository;

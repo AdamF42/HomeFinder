@@ -18,10 +18,10 @@ public interface GetChatUseCase
 		private Chat chat;
 	}
 
-	class AlreadyPresentException extends Exception {
+	class NotPresentException extends Exception {
 
 	}
 
-	Response execute(Request requestData) throws AlreadyPresentException;
+	Response execute(Request requestData) throws NotPresentException;
 
 }
