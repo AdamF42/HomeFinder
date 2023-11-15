@@ -13,19 +13,19 @@ public class DefaultCreateChatUseCase implements CreateChatUseCase {
 
     @Override
     public Response execute(Request requestData) throws AlreadyPresentException {
-        it.adamf42.core.usecases.chat.repositories.ChatRepository.DbChat user = mapRequestToDbUser(requestData);
         if (this.ChatRepository.existsByChatId(requestData.getChat().getChatId())) {
             throw new AlreadyPresentException();
         }
-        return new Response(mapDbUserToUser(this.ChatRepository.save(user)));
+        ChatRepository.DbChat chat = mapRequestToDbChat(requestData);
+        return new Response(mapDbChatToChat(this.ChatRepository.save(chat)));
     }
 
-    private static it.adamf42.core.usecases.chat.repositories.ChatRepository.DbChat mapRequestToDbUser(Request requestData) {
+    private static ChatRepository.DbChat mapRequestToDbChat(Request requestData) {
         return new ChatRepository.DbChat(requestData.getChat().getChatId(), requestData.getChat().getMaxPrice(),
                 requestData.getChat().getMinPrice(), requestData.getChat().getCity());
     }
 
-    private Chat mapDbUserToUser(it.adamf42.core.usecases.chat.repositories.ChatRepository.DbChat dbChat) {
+    private Chat mapDbChatToChat(ChatRepository.DbChat dbChat) {
         if (dbChat == null) {
             return null;
         }

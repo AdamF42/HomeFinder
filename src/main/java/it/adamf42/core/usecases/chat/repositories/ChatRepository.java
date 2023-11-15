@@ -7,7 +7,7 @@ public interface ChatRepository {
 
 	DbChat save(DbChat DbChat);
 
-	DbChat findByChatId(String chatId);
+	DbChat findByChatId(Long chatId);
 
 	boolean existsByChatId(Long chatId);
 

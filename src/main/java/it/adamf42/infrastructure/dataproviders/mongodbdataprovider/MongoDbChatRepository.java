@@ -24,7 +24,7 @@ public class MongoDbChatRepository implements ChatRepository {
     }
 
     @Override
-    public DbChat findByChatId(String chatId) {
+    public DbChat findByChatId(Long chatId) {
         Document query = new Document("chatId", chatId);
 
         try (MongoCursor<Document> cursor = userCollection.find(query).iterator()) {

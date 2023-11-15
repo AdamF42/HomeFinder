@@ -3,12 +3,12 @@ package it.adamf42.core.usecases.chat;
 import it.adamf42.core.domain.chat.Chat;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 
-public class DefaultUpdateChatUseCase implements UpdateChatUseCase
+public class DefaultGetChatUseCase implements UpdateChatUseCase
 {
 
 	private final ChatRepository ChatRepository;
 
-	public DefaultUpdateChatUseCase(ChatRepository ChatRepository)
+	public DefaultGetChatUseCase(ChatRepository ChatRepository)
 	{
 		this.ChatRepository = ChatRepository;
 	}
@@ -20,17 +20,12 @@ public class DefaultUpdateChatUseCase implements UpdateChatUseCase
 		{
 			throw new NotPresentException();
 		}
-		ChatRepository.DbChat chat = mapRequestToDbChat(requestData);
-		return new Response(mapDbChatToChat(this.ChatRepository.update(chat)));
+		return new Response(mapDbUserToUser(this.ChatRepository.findByChatId(requestData.getChat().getChatId())));
 	}
 
-	private static ChatRepository.DbChat mapRequestToDbChat(Request requestData)
-	{
-        return new ChatRepository.DbChat(requestData.getChat().getChatId(), requestData.getChat().getMaxPrice(),
-				requestData.getChat().getMinPrice(), requestData.getChat().getCity());
-	}
 
-	private Chat mapDbChatToChat(ChatRepository.DbChat dbChat)
+
+	private Chat mapDbUserToUser(it.adamf42.core.usecases.chat.repositories.ChatRepository.DbChat dbChat)
 	{
 		if (dbChat == null)
 		{
