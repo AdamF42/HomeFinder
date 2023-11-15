@@ -31,16 +31,15 @@ import java.util.Queue;
 public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
-    private static final long MSG_INTERVAL = 5;
+    private static final long MSG_INTERVAL = 500;
 
     private enum ChatStatus {
         FREE,
         UPDATE_MIN,
-
         UPDATE_MAX
     }
 
-    private Map<Long, ChatStatus> chatStatusMap = new HashMap<>();
+    private final Map<Long, ChatStatus> chatStatusMap = new HashMap<>();
 
     private static class TelegramBot extends TelegramLongPollingBot {
 
@@ -230,7 +229,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         getContext().getLog().info("start");
         return msg -> Behaviors.withTimers(timer -> {
             timer.cancel(TIMER_KEY);
-            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
+            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofMillis(MSG_INTERVAL));
             TelegramBotsApi api = new TelegramBotsApi(DefaultBotSession.class);
             TelegramBot bot = new TelegramBot(msg.getToken(), this.getContext().getSelf(), this.getContext().getLog());
             api.registerBot(bot);
@@ -311,7 +310,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
     private Function<SendMsgCommand, Behavior<Command>> onSendMsgCommandWhileIdle(TelegramBot bot) {
         return msg -> Behaviors.withTimers(timer -> {
             timer.cancel(TIMER_KEY);
-            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofSeconds(MSG_INTERVAL));
+            timer.startTimerAtFixedRate(TIMER_KEY, new ProcessRequestCommand(), Duration.ofMillis(MSG_INTERVAL));
             currentRequests.add(msg);
             return running(bot);
         });
