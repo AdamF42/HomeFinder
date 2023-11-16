@@ -374,19 +374,15 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         StringBuilder htmlBuilder = new StringBuilder();
         String newLine = System.getProperty("line.separator");
 
-        // Set the title at the top with <b> tag if title is not null
         if (ad.getTitle() != null) {
             htmlBuilder.append("<b>\uD83C\uDFE0 ").append(ad.getTitle()).append("</b>").append(newLine).append(newLine);
         }
-
 
         appendIfNotNull(htmlBuilder, "", ad.getCity(), " ");
         appendIfNotNull(htmlBuilder, ", ", ad.getArea(), " ");
         appendIfNotNull(htmlBuilder, ", ", ad.getStreet(), " ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
-
-
 
         appendIfNotNull(htmlBuilder, "Superficie:", ad.getSquareMeters(), "m² ");
         appendIfNotNull(htmlBuilder, "| Piano:", ad.getFloor(), newLine);
@@ -395,19 +391,16 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
-
         appendIfNotNull(htmlBuilder, "\uD83D\uDCB0 Prezzo:", ad.getPrice(), " ");
         appendIfNotNull(htmlBuilder, "| Condominio: ", ad.getCondominiumFees(), " ");
         appendIfNotNull(htmlBuilder, "| Caparra: ", ad.getBail(), " ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
-
         appendIfNotNull(htmlBuilder, " \uD83D\uDD11 Agenzia", ad.getPublisher(), " ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
-        // Add the URL as a link at the end if URL is not null
         if (ad.getUrl() != null) {
             htmlBuilder.append("\uD83D\uDC49  <a href=\"").append(ad.getUrl()).append("\"><u>Link Dettagli</u></a>");
         }
