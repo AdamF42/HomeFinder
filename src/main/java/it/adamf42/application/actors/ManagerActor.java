@@ -52,7 +52,7 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
                     db.tell(new DatabaseActor.BootCommand(System.getenv(MONGO_CONN_STR), System.getenv(MONGO_DATABASE), getContext().getSelf()));
                     kafka.tell(new KafkaActor.BootCommand());
                     bot.tell(new BotActor.StartCommand(System.getenv(TG_TOKEN)));
-                    chatManager.tell(new ChatManagerActor.StartCommand(bot));
+                    chatManager.tell(new ChatManagerActor.StartCommand(bot, db));
                     return Behaviors.same();
                 })
                 .build();

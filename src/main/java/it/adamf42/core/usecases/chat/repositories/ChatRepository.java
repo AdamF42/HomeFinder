@@ -3,6 +3,8 @@ package it.adamf42.core.usecases.chat.repositories;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+
 public interface ChatRepository {
 
 	DbChat save(DbChat DbChat);
@@ -12,6 +14,8 @@ public interface ChatRepository {
 	boolean existsByChatId(Long chatId);
 
 	DbChat update(DbChat DbChat);
+
+	List<DbChat> getAll();
 
 	@Data
 	@AllArgsConstructor

@@ -13,6 +13,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command> {
@@ -25,8 +26,12 @@ public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command>
         @Getter
         private final ActorRef<BotActor.Command> bot;
 
-        public StartCommand(ActorRef<BotActor.Command> bot) {
+        @Getter
+        private final ActorRef<DatabaseActor.Command> db;
+
+        public StartCommand(ActorRef<BotActor.Command> bot, ActorRef<DatabaseActor.Command> db) {
             this.bot = bot;
+            this.db = db;
         }
     }
 
@@ -64,6 +69,18 @@ public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command>
     }
 
 
+    public static class AllChatsCommand implements Command {
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        private final List<Chat> chats;
+
+        public AllChatsCommand(List<Chat> chats) {
+            this.chats = chats;
+        }
+    }
+
+
     private ChatManagerActor(ActorContext<Command> context) {
         super(context);
     }
@@ -75,17 +92,38 @@ public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command>
     @Override
     public Receive<Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(StartCommand.class, msg -> running(msg.bot, new HashMap<>()))
+                .onMessage(StartCommand.class, msg -> {
+                    msg.db.tell(new DatabaseActor.GetAllChatCommand(this.getContext().getSelf()));
+                    return setup(msg.getBot());
+                })
                 .build();
     }
+
+    private Receive<Command> setup(ActorRef<BotActor.Command> bot) {
+        return newReceiveBuilder()
+                .onMessage(AllChatsCommand.class, msg -> {
+                    Map<Long, ActorRef<ChatActor.Command>> mem = new HashMap<>();
+                    msg.getChats().forEach(c -> {
+                        Behavior<ChatActor.Command> dbBehavior =
+                                Behaviors.supervise(ChatActor.create(bot, c)).onFailure(SupervisorStrategy.resume());
+                        ActorRef<ChatActor.Command> chat = getContext().spawn(dbBehavior, "chat" + c.getChatId());
+                        getContext().watch(chat);
+                        mem.put(c.getChatId(), chat);
+
+                    });
+                    return running(bot, mem);
+                })
+                .build();
+    }
+
 
     private Receive<Command> running(ActorRef<BotActor.Command> bot, Map<Long, ActorRef<ChatActor.Command>> mem) {
         return newReceiveBuilder()
                 .onMessage(NewChatCommand.class, msg -> {
                     mem.computeIfAbsent(msg.getChat().getChatId(), k -> {
-                        Behavior<ChatActor.Command> dbBehavior =
+                        Behavior<ChatActor.Command> chatBehavior =
                                 Behaviors.supervise(ChatActor.create(bot, msg.getChat())).onFailure(SupervisorStrategy.resume());
-                        ActorRef<ChatActor.Command> chat = getContext().spawn(dbBehavior, "chat" + msg.getChat().getChatId());
+                        ActorRef<ChatActor.Command> chat = getContext().spawn(chatBehavior, "chat" + msg.getChat().getChatId());
                         getContext().watch(chat);
                         return chat;
                     });

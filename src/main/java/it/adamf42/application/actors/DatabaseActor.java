@@ -22,6 +22,7 @@ import it.adamf42.core.usecases.chat.*;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbChatRepository;
+import lombok.Data;
 import lombok.Getter;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -38,6 +39,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
     private CreateChatUseCase createUser;
     private UpdateChatUseCase updateUser;
     private GetChatUseCase getChat;
+    private GetAllChatUseCase getAllChat;
 
     public interface Command extends Serializable {
     }
@@ -108,6 +110,19 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         }
     }
 
+    public static class GetAllChatCommand implements DatabaseActor.Command {
+
+        private static final long serialVersionUID = 1L;
+
+        @Getter
+        private final ActorRef<ChatManagerActor.Command> chatManager;
+
+        public GetAllChatCommand(ActorRef<ChatManagerActor.Command> chatManager) {
+            this.chatManager = chatManager;
+        }
+
+    }
+
     public DatabaseActor(ActorContext<DatabaseActor.Command> context) {
         super(context);
     }
@@ -137,6 +152,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     this.createUser = new DefaultCreateChatUseCase(chatRepository);
                     this.updateUser = new DefaultUpdateChatUseCase(chatRepository);
                     this.getChat = new DefaultGetChatUseCase(chatRepository);
+                    this.getAllChat = new DefaultGetAllChatUseCase(chatRepository);
                     return Behaviors.same();
                 })
                 .onMessage(SaveAdCommand.class, msg -> {
@@ -166,8 +182,15 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     req.setChatId(msg.getChatId());
                     Try.of(() -> this.getChat.execute(req))
                             .onFailure(GetChatUseCase.NotPresentException.class, e -> getContext().getLog().debug("Chat {} Not present", msg.getChatId()))
-                            .onSuccess(chat -> getContext().getLog().debug("Successfully retrieved chat: {}", chat))
+                            .onSuccess(chat -> getContext().getLog().debug("Successfully retrieved chat: {}", chat.getChat()))
                             .andThen(chat -> msg.getBot().tell(new BotActor.GetChatResponseCommand(chat.getChat(), chat.getChat().getChatId())));
+                    return Behaviors.same();
+                })
+                .onMessage(GetAllChatCommand.class, msg -> {
+                    Try.of(() -> this.getAllChat.execute(new GetAllChatUseCase.Request()))
+                            .onSuccess(r -> getContext().getLog().debug("Successfully retrieved {} chats.", r.getChats().size()))
+                            .andThen(r -> msg.getChatManager().tell(new ChatManagerActor.AllChatsCommand(r.getChats())));
+
                     return Behaviors.same();
                 })
                 .build();

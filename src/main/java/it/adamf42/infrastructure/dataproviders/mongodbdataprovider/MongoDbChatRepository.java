@@ -5,6 +5,9 @@ import com.mongodb.client.MongoCursor;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MongoDbChatRepository implements ChatRepository {
 
     private final MongoCollection<Document> userCollection;
@@ -69,6 +72,22 @@ public class MongoDbChatRepository implements ChatRepository {
         }
 
         return dbChat;
+    }
+
+    @Override
+    public List<DbChat> getAll() {
+        List<DbChat> chatList = new ArrayList<>();
+
+        try (MongoCursor<Document> cursor = userCollection.find().iterator()) {
+            while (cursor.hasNext()) {
+                Document userDocument = cursor.next();
+                chatList.add(documentToDbUser(userDocument));
+            }
+        } catch (Exception e) {
+            // TODO: log
+        }
+
+        return chatList;
     }
 
     private DbChat documentToDbUser(Document document) {
