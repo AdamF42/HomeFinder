@@ -31,7 +31,7 @@ import java.util.Queue;
 public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
-    private static final long MSG_INTERVAL = 40;
+    private static final long MSG_INTERVAL = 50;
 
     private enum ChatStatus {
         FREE,
@@ -66,10 +66,15 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             Long chatId = update.getMessage().getChatId();
 
             if (MsgFromChatCommand.CommandType.isValidCommand(msgtext)) {
-                this.actor.tell(new MsgFromChatCommand(MsgFromChatCommand.CommandType.fromString(msgtext), chatId));
+                this.actor.tell(new MsgFromChatCommand(MsgFromChatCommand.CommandType.fromString(getStringBeforeAt(msgtext)), chatId));
             } else {
                 this.actor.tell(new UserInputMsgCommand(msgtext, chatId));
             }
+        }
+
+        private static String getStringBeforeAt(String input) {
+            int atIndex = input.indexOf('@');
+            return atIndex >= 0 ? input.substring(0, atIndex) : input;
         }
 
         public void sendMsg(Long chatId, String msg) {
@@ -185,7 +190,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             // Function to verify if a string matches one of the command patterns
             public static boolean isValidCommand(String input) {
                 for (CommandType commandType : CommandType.values()) {
-                    if (input.equals(commandType.getCommandString())) {
+                    if (input.equals(commandType.getCommandString()) || input.startsWith(commandType.getCommandString() + "@" )) {
                         return true;
                     }
                 }
@@ -378,22 +383,22 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             htmlBuilder.append("<b>\uD83C\uDFE0 ").append(ad.getTitle()).append("</b>").append(newLine).append(newLine);
         }
 
-        appendIfNotNull(htmlBuilder, "", ad.getCity(), " ");
-        appendIfNotNull(htmlBuilder, ", ", ad.getArea(), " ");
-        appendIfNotNull(htmlBuilder, ", ", ad.getStreet(), " ");
+        appendIfNotNull(htmlBuilder, "\uD83D\uDCCD", ad.getCity(), "");
+        appendIfNotNull(htmlBuilder, ", ", ad.getArea(), "");
+        appendIfNotNull(htmlBuilder, ", ", ad.getStreet(), "");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
         appendIfNotNull(htmlBuilder, "Superficie:", ad.getSquareMeters(), "m² ");
-        appendIfNotNull(htmlBuilder, "| Piano:", ad.getFloor(), newLine);
+        appendIfNotNull(htmlBuilder, "| Piano:", ad.getFloor(), "°" + newLine);
         appendIfNotNull(htmlBuilder, "| Camere:", ad.getRooms(), " ");
-        appendIfNotNull(htmlBuilder, "| Classificazione energetica:", ad.getEnergyRating(), " ");
+        appendIfNotNull(htmlBuilder, "| Classificazione energetica:", ad.getEnergyRating(), "");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
-        appendIfNotNull(htmlBuilder, "\uD83D\uDCB0 Prezzo:", ad.getPrice(), " ");
-        appendIfNotNull(htmlBuilder, "| Condominio: ", ad.getCondominiumFees(), " ");
-        appendIfNotNull(htmlBuilder, "| Caparra: ", ad.getBail(), " ");
+        appendIfNotNull(htmlBuilder, "\uD83D\uDCB0 Prezzo:", ad.getPrice(), "€ ");
+        appendIfNotNull(htmlBuilder, "| Condominio: ", ad.getCondominiumFees(), "€ ");
+        appendIfNotNull(htmlBuilder, "| Caparra: ", ad.getBail(), "€ ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
