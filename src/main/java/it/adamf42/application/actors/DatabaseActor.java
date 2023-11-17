@@ -68,8 +68,12 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
         @Getter
         private final Ad ad;
 
-        public SaveAdCommand(Ad ad) {
+        @Getter
+        private final ActorRef<ChatManagerActor.Command> chatManager;
+
+        public SaveAdCommand(Ad ad, ActorRef<ChatManagerActor.Command> chatManager) {
             this.ad = ad;
+            this.chatManager = chatManager;
         }
     }
 
@@ -158,7 +162,8 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                 .onMessage(SaveAdCommand.class, msg -> {
                     Try.of(() -> this.createAd.execute(adToRequest(msg.getAd())))
                             .onFailure(CreateAdUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
-                            .onSuccess(ad -> getContext().getLog().debug("Successfully saved Ad: {}", ad));
+                            .onSuccess(ad -> getContext().getLog().debug("Successfully saved Ad: {}", ad))
+                            .andThen(r -> msg.getChatManager().tell(new ChatManagerActor.NewAdCommand(r.getAd())));
                     return Behaviors.same();
                 })
                 .onMessage(SaveChatCommand.class, msg -> {
@@ -190,7 +195,6 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     Try.of(() -> this.getAllChat.execute(new GetAllChatUseCase.Request()))
                             .onSuccess(r -> getContext().getLog().debug("Successfully retrieved {} chats.", r.getChats().size()))
                             .andThen(r -> msg.getChatManager().tell(new ChatManagerActor.AllChatsCommand(r.getChats())));
-
                     return Behaviors.same();
                 })
                 .build();

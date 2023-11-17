@@ -72,8 +72,7 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	private void processKafkaMessage(String partition, long offset, String key, Ad ad)
 	{
 		logger.info("Partition = {}, Offset = {}, Key = {}, Ad = {}", partition, offset, key, ad);
-		databaseActor.tell(new DatabaseActor.SaveAdCommand(ad));
-		chatManagerActor.tell(new ChatManagerActor.NewAdCommand(ad));
+		databaseActor.tell(new DatabaseActor.SaveAdCommand(ad, chatManagerActor));
 	}
 
 	private static class KafkaClient extends Thread
