@@ -397,12 +397,12 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         htmlBuilder.append(newLine);
 
         appendIfNotNull(htmlBuilder, "\uD83D\uDCB0 Prezzo:", ad.getPrice(), "€ ");
-        appendIfNotNull(htmlBuilder, "| Condominio: ", ad.getCondominiumFees(), "€ ");
-        appendIfNotNull(htmlBuilder, "| Caparra: ", ad.getBail(), "€ ");
+        appendIfNotNull(htmlBuilder, "| Condominio:", ad.getCondominiumFees(), "€ ");
+        appendIfNotNull(htmlBuilder, "| Caparra:", ad.getBail(), "€ ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
-        appendIfNotNull(htmlBuilder, " \uD83D\uDD11 Agenzia", ad.getPublisher(), " ");
+        appendIfNotNull(htmlBuilder, " \uD83D\uDD11 Agenzia:", ad.getPublisher(), " ");
         htmlBuilder.append(newLine);
         htmlBuilder.append(newLine);
 
