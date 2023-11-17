@@ -35,7 +35,7 @@ public class MongoDbAdRepository implements AdRepository
 	{
 		Document existingDocument = adCollection.find(
 		Filters.and(Filters.eq("city", dbAd.getCity()), Filters.eq("title", dbAd.getTitle()),
-		Filters.eq("publisher", dbAd.getPublisher()))).first();
+		Filters.eq("price", dbAd.getPrice()))).first();
 		return existingDocument != null;
 	}
 }
