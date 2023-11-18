@@ -9,4 +9,5 @@ public class Chat
 	Integer maxPrice;
 	Integer minPrice;
 	String city;
+	Boolean isActive;
 }

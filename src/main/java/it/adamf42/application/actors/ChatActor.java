@@ -95,6 +95,9 @@ public class ChatActor extends AbstractBehavior<ChatActor.Command> {
                     if (updatedChat.getMinPrice() != null) {
                         runningChat.setMinPrice(updatedChat.getMinPrice());
                     }
+                    if (runningChat.getIsActive() != null) {
+                        runningChat.setIsActive(updatedChat.getIsActive());
+                    }
                     return running(runningChat);
                 })
                 .build();

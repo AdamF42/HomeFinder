@@ -28,21 +28,21 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 	private final ActorRef<DatabaseActor.Command> databaseActor;
 	private final ActorRef<ChatManagerActor.Command> chatManagerActor;
 	private final KafkaClient kafkaClient;
-	private Logger logger = getContext().getLog();
+	private final Logger logger = getContext().getLog();
 
 	// Define a scheduler for running asynchronous tasks
 
-	private KafkaActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor)
+	private KafkaActor(ActorContext<Command> context, ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor, String bootstrapServers)
 	{
 		super(context);
 		this.databaseActor = databaseActor;
 		this.chatManagerActor = chatManagerActor;
-		this.kafkaClient = new KafkaClient("localhost:29092", "ads", "ads-group", this::processKafkaMessage, logger); // TODO: configuration should be injected
+		this.kafkaClient = new KafkaClient(bootstrapServers, "ads", "ads-group", this::processKafkaMessage, logger); // TODO: configuration should be injected
 	}
 
-	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor)
+	public static Behavior<Command> create(ActorRef<DatabaseActor.Command> databaseActor, ActorRef<ChatManagerActor.Command> chatManagerActor, String bootstrapServers)
 	{
-		return Behaviors.setup(context -> new KafkaActor(context, databaseActor, chatManagerActor));
+		return Behaviors.setup(context -> new KafkaActor(context, databaseActor, chatManagerActor, bootstrapServers));
 	}
 
 	// Define the command interface for KafkaActor
@@ -132,10 +132,10 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 			}
 		}
 
-		public void close()
-		{
-			kafkaConsumer.close();
-		}
+//		public void close()
+//		{
+//			kafkaConsumer.close();
+//		}
 
 		// Callback interface for processing Kafka messages
 		public interface MessageCallback

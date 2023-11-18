@@ -24,5 +24,6 @@ public interface ChatRepository {
 		private Integer maxPrice;
 		private Integer minPrice;
 		private String city;
+		private Boolean isActive;
 	}
 }

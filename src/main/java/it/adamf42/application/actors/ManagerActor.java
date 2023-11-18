@@ -7,13 +7,15 @@ import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.actor.typed.javadsl.Receive;
+import com.typesafe.config.ConfigException;
 
 import java.io.Serializable;
 
 public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
-    private static final String MONGO_CONN_STR = "MONGO_CONN_STR";
-    private static final String MONGO_DATABASE = "MONGO_DATABASE";
-    private static final String TG_TOKEN = "TG_TOKEN";
+    private static final String MONGO_CONN_STR = System.getenv("MONGO_CONN_STR");
+    private static final String MONGO_DATABASE = System.getenv("MONGO_DATABASE");
+    private static final String TG_TOKEN = System.getenv("TG_TOKEN");
+    private static final String KAKFA_BOOTSTRAP_SERVERS = System.getenv("KAKFA_BOOTSTRAP_SERVERS");
 
     public ManagerActor(ActorContext<Command> context) {
         super(context);
@@ -39,7 +41,7 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
         getContext().watch(db);
 
         Behavior<KafkaActor.Command> kafkaBehavior =
-                Behaviors.supervise(KafkaActor.create(db, chatManager)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
+                Behaviors.supervise(KafkaActor.create(db, chatManager, KAKFA_BOOTSTRAP_SERVERS)).onFailure(SupervisorStrategy.resume());  // resume = ignore the crash
         ActorRef<KafkaActor.Command> kafka = getContext().spawn(kafkaBehavior, "kafka");
 
         Behavior<BotActor.Command> botBehavior =
@@ -49,9 +51,9 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
 
         return newReceiveBuilder()
                 .onMessage(ManagerActor.BootCommand.class, msg -> {
-                    db.tell(new DatabaseActor.BootCommand(System.getenv(MONGO_CONN_STR), System.getenv(MONGO_DATABASE), getContext().getSelf()));
+                    db.tell(new DatabaseActor.BootCommand(MONGO_CONN_STR, MONGO_DATABASE, getContext().getSelf()));
                     kafka.tell(new KafkaActor.BootCommand());
-                    bot.tell(new BotActor.StartCommand(System.getenv(TG_TOKEN)));
+                    bot.tell(new BotActor.StartCommand(TG_TOKEN));
                     chatManager.tell(new ChatManagerActor.StartCommand(bot, db));
                     return Behaviors.same();
                 })
@@ -59,6 +61,20 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
     }
 
     public static Behavior<ManagerActor.Command> create() {
+
+        if (MONGO_CONN_STR == null || MONGO_CONN_STR.isEmpty() || MONGO_CONN_STR.isBlank()) {
+            throw new ConfigException.Missing("MONGO_CONN_STR");
+        }
+        if (MONGO_DATABASE == null || MONGO_DATABASE.isEmpty() || MONGO_DATABASE.isBlank()) {
+            throw new ConfigException.Missing("MONGO_DATABASE");
+        }
+        if (TG_TOKEN == null || TG_TOKEN.isEmpty() || TG_TOKEN.isBlank()) {
+            throw new ConfigException.Missing("TG_TOKEN");
+        }
+        if (KAKFA_BOOTSTRAP_SERVERS == null || KAKFA_BOOTSTRAP_SERVERS.isEmpty() || KAKFA_BOOTSTRAP_SERVERS.isBlank()) {
+            throw new ConfigException.Missing("KAKFA_BOOTSTRAP_SERVERS");
+        }
+
         return Behaviors.setup(ManagerActor::new);
     }
 

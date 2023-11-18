@@ -35,6 +35,7 @@ public class DefaultGetAllChatUseCase implements GetAllChatUseCase
 		chat.setMaxPrice(dbChat.getMaxPrice());
 		chat.setMinPrice(dbChat.getMinPrice());
 		chat.setCity(dbChat.getCity());
+		chat.setIsActive(dbChat.getIsActive());
 
 		return chat;
 	}

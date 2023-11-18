@@ -22,7 +22,7 @@ public class DefaultCreateChatUseCase implements CreateChatUseCase {
 
     private static ChatRepository.DbChat mapRequestToDbChat(Request requestData) {
         return new ChatRepository.DbChat(requestData.getChat().getChatId(), requestData.getChat().getMaxPrice(),
-                requestData.getChat().getMinPrice(), requestData.getChat().getCity());
+                requestData.getChat().getMinPrice(), requestData.getChat().getCity(), requestData.getChat().getIsActive());
     }
 
     private Chat mapDbChatToChat(ChatRepository.DbChat dbChat) {
@@ -35,6 +35,7 @@ public class DefaultCreateChatUseCase implements CreateChatUseCase {
         chat.setMaxPrice(dbChat.getMaxPrice());
         chat.setMinPrice(dbChat.getMinPrice());
         chat.setCity(dbChat.getCity());
+        chat.setIsActive(dbChat.getIsActive());
 
         return chat;
     }

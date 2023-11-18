@@ -22,7 +22,6 @@ import it.adamf42.core.usecases.chat.*;
 import it.adamf42.core.usecases.chat.repositories.ChatRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbAdRepository;
 import it.adamf42.infrastructure.dataproviders.mongodbdataprovider.MongoDbChatRepository;
-import lombok.Data;
 import lombok.Getter;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -36,8 +35,8 @@ import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
 
     private CreateAdUseCase createAd;
-    private CreateChatUseCase createUser;
-    private UpdateChatUseCase updateUser;
+    private CreateChatUseCase createChat;
+    private UpdateChatUseCase updateChat;
     private GetChatUseCase getChat;
     private GetAllChatUseCase getAllChat;
 
@@ -153,8 +152,8 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     this.createAd = new DefaultCreateAdUseCase(adRepository);
                     MongoCollection<Document> chatsCollection = database.getCollection("chats");
                     ChatRepository chatRepository = new MongoDbChatRepository(chatsCollection);
-                    this.createUser = new DefaultCreateChatUseCase(chatRepository);
-                    this.updateUser = new DefaultUpdateChatUseCase(chatRepository);
+                    this.createChat = new DefaultCreateChatUseCase(chatRepository);
+                    this.updateChat = new DefaultUpdateChatUseCase(chatRepository);
                     this.getChat = new DefaultGetChatUseCase(chatRepository);
                     this.getAllChat = new DefaultGetAllChatUseCase(chatRepository);
                     return Behaviors.same();
@@ -169,7 +168,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                 .onMessage(SaveChatCommand.class, msg -> {
                     CreateChatUseCase.Request req = new CreateChatUseCase.Request();
                     req.setChat(msg.getChat());
-                    Try.of(() -> this.createUser.execute(req))
+                    Try.of(() -> this.createChat.execute(req))
                             .onFailure(CreateChatUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
                             .onSuccess(chat -> getContext().getLog().debug("Successfully saved chat: {}", chat));
                     return Behaviors.same();
@@ -177,7 +176,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                 .onMessage(UpdateChatCommand.class, msg -> {
                     UpdateChatUseCase.Request req = new UpdateChatUseCase.Request();
                     req.setChat(msg.getChat());
-                    Try.of(() -> this.updateUser.execute(req))
+                    Try.of(() -> this.updateChat.execute(req))
                             .onFailure(UpdateChatUseCase.NotPresentException.class, e -> getContext().getLog().debug("Chat {} Not present", msg.getChat().getChatId()))
                             .onSuccess(chat -> getContext().getLog().debug("Successfully updated chat: {}", chat));
                     return Behaviors.same();

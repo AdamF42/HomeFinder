@@ -19,6 +19,7 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.Serializable;
@@ -84,6 +85,14 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             sendMessage.enableHtml(true);
             try {
                 this.execute(sendMessage);
+            } catch (TelegramApiRequestException e) {
+                if (Integer.valueOf(403).equals(e.getErrorCode())){
+                    logger.debug("Received {} from chat {} removing...", e.getErrorCode(), chatId);
+                    this.actor.tell(new DisableChatCommand(chatId));
+
+                } else  {
+                    logger.error("Unable to send msg {} to chat {}", msg, chatId, e);
+                }
             } catch (TelegramApiException e) {
                 logger.error("Unable to send msg {} to chat {}", msg, chatId, e);
             }
@@ -95,7 +104,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         }
     }
 
-    private Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
+    private final Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
 
     private final ActorRef<DatabaseActor.Command> databaseActor;
     private final ActorRef<ChatManagerActor.Command> chatManagerActor;
@@ -226,6 +235,15 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
         private final Long chatId;
     }
 
+    @Data
+    @AllArgsConstructor
+    public static class DisableChatCommand implements Command {
+
+        private static final long serialVersionUID = 1L;
+
+        private final Long chatId;
+    }
+
     public static class ProcessRequestCommand implements Command {
         private static final long serialVersionUID = 1L;
     }
@@ -257,6 +275,14 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
                 .onMessage(ProcessRequestCommand.class, onProcessRequestCommand(bot))
                 .onMessage(MsgFromChatCommand.class, onUserMsgCommand())
                 .onMessage(UserInputMsgCommand.class, onUserInputMsgCommand(bot))
+                .onMessage(DisableChatCommand.class, msg -> {
+                    Chat toBeUpdatedChat = new Chat();
+                    toBeUpdatedChat.setIsActive(false);
+                    toBeUpdatedChat.setChatId(msg.getChatId());
+                    this.chatManagerActor.tell(new ChatManagerActor.UpdateChatCommand(toBeUpdatedChat)); // TODO: understand how
+                    this.databaseActor.tell(new DatabaseActor.UpdateChatCommand(toBeUpdatedChat));
+                    return running(bot);
+                })
                 .build();
     }
 
@@ -319,6 +345,7 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             getContext().getLog().debug("[onUserMsgCommand] Received {} on chatId {}", msg.getCmd(), msg.chatId);
             switch (msg.getCmd()) {
                 case START:
+                    chat.setIsActive(true);
                     this.databaseActor.tell(new DatabaseActor.SaveChatCommand(chat));
                     this.chatManagerActor.tell(new ChatManagerActor.NewChatCommand(chat));
                     this.chatStatusMap.put(chat.getChatId(), ChatStatus.FREE);

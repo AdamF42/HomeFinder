@@ -103,13 +103,12 @@ public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command>
         return newReceiveBuilder()
                 .onMessage(AllChatsCommand.class, msg -> {
                     Map<Long, ActorRef<ChatActor.Command>> mem = new HashMap<>();
-                    msg.getChats().forEach(c -> {
+                    msg.getChats().stream().filter(c -> Boolean.TRUE.equals(c.getIsActive())).forEach(c -> {
                         Behavior<ChatActor.Command> dbBehavior =
                                 Behaviors.supervise(ChatActor.create(bot, c)).onFailure(SupervisorStrategy.resume());
                         ActorRef<ChatActor.Command> chat = getContext().spawn(dbBehavior, "chat" + c.getChatId());
                         getContext().watch(chat);
                         mem.put(c.getChatId(), chat);
-
                     });
                     return running(bot, mem);
                 })
@@ -130,6 +129,9 @@ public class ChatManagerActor extends AbstractBehavior<ChatManagerActor.Command>
                     return Behaviors.same();
                 })
                 .onMessage(UpdateChatCommand.class, msg -> {
+                    if (Boolean.FALSE.equals(msg.getChat().getIsActive())){
+                        mem.remove(msg.getChat().getChatId());
+                    }
                     mem.computeIfPresent(msg.getChat().getChatId(), (k, a) -> {
                         a.tell(new ChatActor.UpdateChatCommand(msg.getChat()));
                         return a;

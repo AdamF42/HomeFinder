@@ -19,11 +19,12 @@ public class MongoDbChatRepository implements ChatRepository {
     @Override
     public DbChat save(DbChat dbChat) {
         Document userDocument = new Document("chatId", dbChat.getChatId()).append("maxPrice", dbChat.getMaxPrice())
-                .append("minPrice", dbChat.getMinPrice()).append("city", dbChat.getCity());
+                .append("minPrice", dbChat.getMinPrice()).append("city", dbChat.getCity())
+                .append("isActive", dbChat.getIsActive());
 
         userCollection.insertOne(userDocument);
 
-        return dbChat;
+        return findByChatId(dbChat.getChatId());
     }
 
     @Override
@@ -66,12 +67,16 @@ public class MongoDbChatRepository implements ChatRepository {
             update.append("city", dbChat.getCity());
         }
 
+        if (dbChat.getIsActive() != null) {
+            update.append("isActive", dbChat.getIsActive());
+        }
+
         if (!update.isEmpty()) {
             Document updateQuery = new Document("$set", update);
             userCollection.updateOne(query, updateQuery);
         }
 
-        return dbChat;
+        return findByChatId(dbChat.getChatId());
     }
 
     @Override
@@ -92,6 +97,6 @@ public class MongoDbChatRepository implements ChatRepository {
 
     private DbChat documentToDbUser(Document document) {
         return new DbChat(document.getLong("chatId"), document.getInteger("maxPrice"),
-                document.getInteger("minPrice"), document.getString("city"));
+                document.getInteger("minPrice"), document.getString("city"), document.getBoolean("isActive", false));
     }
 }
