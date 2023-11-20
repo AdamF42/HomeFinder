@@ -6,8 +6,11 @@ services:
       dockerfile: Dockerfile
     container_name: home_finder
     working_dir: /app
+    volumes:
+      - /etc/apps/logs/:/app/logs/
     environment:
       - MONGO_CONN_STR=${MONGO_CONN_STR}
       - MONGO_DATABASE=${MONGO_DATABASE}
       - TG_TOKEN=${TG_TOKEN}
       - KAKFA_BOOTSTRAP_SERVERS=${KAKFA_BOOTSTRAP_SERVERS}
+    network_mode: "host"
