@@ -10,7 +10,7 @@ FROM adoptopenjdk:11-jre-hotspot-bionic
 
 WORKDIR /app
 
-COPY --from=build /app/target/HomeFinder-2.0.0-SNAPSHOT.jar ./app.jar
+COPY --from=build /app/target/HomeFinder-3.0.0-SNAPSHOT.jar ./app.jar
 
 ARG MONGO_CONN_STR
 ARG MONGO_DATABASE
