@@ -18,6 +18,9 @@ import static it.adamf42.application.actors.ChatActor.AdChatValidator.isMaxPrice
 import static it.adamf42.application.actors.ChatActor.AdChatValidator.isMinPriceRespected;
 
 public class ChatActor extends AbstractBehavior<ChatActor.Command> {
+
+    private final ActorRef<BotActor.Command> bot;
+    private final Chat chat;
     public interface Command extends Serializable {
     }
 
@@ -42,28 +45,15 @@ public class ChatActor extends AbstractBehavior<ChatActor.Command> {
         }
     }
 
-    private final ActorRef<BotActor.Command> bot;
-    private Chat chat;
-
     private ChatActor(ActorContext<Command> context, ActorRef<BotActor.Command> bot, Chat chat) {
         super(context);
         this.bot = bot;
         this.chat = chat;
-
-//        ActorRef<ChatManagerActor.NewAdCommand> messageAdapter = context.messageAdapter(
-//                ChatManagerActor.NewAdCommand.class,
-//                d -> new NewAdCommand(d.getAd())
-//        );
-//
-//        context.getSystem().eventStream()
-//                .tell(new EventStream.Subscribe<>(ChatManagerActor.NewAdCommand.class, messageAdapter));
-
-    }
+            }
 
     public static Behavior<ChatActor.Command> create(ActorRef<BotActor.Command> bot, Chat chat) {
         return Behaviors.setup(context -> new ChatActor(context, bot, chat));
     }
-
 
     @Override
     public Receive<Command> createReceive() {
