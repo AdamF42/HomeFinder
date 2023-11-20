@@ -1,30 +1,33 @@
 <configuration debug="false" scan="true" scanPeriod="60 seconds">
+
+    <property name="LOG_DIR" value="./logs" />
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <neverBlock>true</neverBlock>
         <encoder>
             <pattern>[%date{ISO8601}] [%level] [%logger] [%thread] [%mdc]- %msg%n</pattern>
         </encoder>
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>housefinder.log</file>
-        <immediateFlush>false</immediateFlush>
+        <file>${LOG_DIR}/housefinder.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- daily rollover -->
-            <fileNamePattern>housefinder.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/housefinder.%d{yyyy-MM-dd}.log</fileNamePattern>
         </rollingPolicy>
         <encoder>
             <pattern>[%date{ISO8601}] [%level] [%logger] [%thread] [%mdc]- %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- Loggers for specific packages with ERROR level -->
     <logger name="org.mongodb.driver.cluster" level="ERROR"/>
     <logger name="org.mongodb.driver.protocol.command" level="ERROR"/>
     <logger name="org.mongodb.driver.connection" level="ERROR"/>
-
+    <logger name="org.apache.kafka" level="ERROR"/>
 
     <root level="DEBUG">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
+
 </configuration>
