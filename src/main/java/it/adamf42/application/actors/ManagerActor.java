@@ -62,21 +62,24 @@ public class ManagerActor extends AbstractBehavior<ManagerActor.Command> {
 
     public static Behavior<ManagerActor.Command> create() {
 
-        if (MONGO_CONN_STR == null || MONGO_CONN_STR.isEmpty() || MONGO_CONN_STR.isBlank()) {
+        if (isNullOrEmpty(MONGO_CONN_STR)) {
             throw new ConfigException.Missing("MONGO_CONN_STR");
         }
-        if (MONGO_DATABASE == null || MONGO_DATABASE.isEmpty() || MONGO_DATABASE.isBlank()) {
+        if (isNullOrEmpty(MONGO_DATABASE)) {
             throw new ConfigException.Missing("MONGO_DATABASE");
         }
-        if (TG_TOKEN == null || TG_TOKEN.isEmpty() || TG_TOKEN.isBlank()) {
+        if (isNullOrEmpty(TG_TOKEN)) {
             throw new ConfigException.Missing("TG_TOKEN");
         }
-        if (KAKFA_BOOTSTRAP_SERVERS == null || KAKFA_BOOTSTRAP_SERVERS.isEmpty() || KAKFA_BOOTSTRAP_SERVERS.isBlank()) {
+        if (isNullOrEmpty(KAKFA_BOOTSTRAP_SERVERS)) {
             throw new ConfigException.Missing("KAKFA_BOOTSTRAP_SERVERS");
         }
 
         return Behaviors.setup(ManagerActor::new);
     }
 
+    private static boolean isNullOrEmpty(String value) {
+        return value == null || value.isEmpty() || value.isBlank();
+    }
 
 }

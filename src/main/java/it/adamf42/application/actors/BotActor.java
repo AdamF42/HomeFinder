@@ -33,14 +33,16 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
 
     // TODO should consider https://core.telegram.org/bots/faq#:~:text=If%20you%27re%20sending%20bulk,minute%20to%20the%20same%20group.
     private static final long MSG_INTERVAL = 50;
-
+    private final Map<Long, ChatStatus> chatStatusMap = new HashMap<>();
+    private final Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
+    private final ActorRef<DatabaseActor.Command> databaseActor;
+    private final ActorRef<ChatManagerActor.Command> chatManagerActor;
+    private Object TIMER_KEY;
     private enum ChatStatus {
         FREE,
         UPDATE_MIN,
         UPDATE_MAX
     }
-
-    private final Map<Long, ChatStatus> chatStatusMap = new HashMap<>();
 
     private static class TelegramBot extends TelegramLongPollingBot {
 
@@ -103,13 +105,6 @@ public class BotActor extends AbstractBehavior<BotActor.Command> {
             this.exe.shutdownNow();
         }
     }
-
-    private final Queue<SendMsgChatCommand> currentRequests = new LinkedList<>();
-
-    private final ActorRef<DatabaseActor.Command> databaseActor;
-    private final ActorRef<ChatManagerActor.Command> chatManagerActor;
-
-    private Object TIMER_KEY;
 
     public interface Command extends Serializable {
     }

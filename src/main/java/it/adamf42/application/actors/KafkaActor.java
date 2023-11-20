@@ -64,7 +64,7 @@ public class KafkaActor extends AbstractBehavior<KafkaActor.Command>
 
 	private Behavior<KafkaActor.Command> onBootCommand(KafkaActor.BootCommand bootCommand)
 	{
-		getContext().getLog().info("KafkaActor received BootCommand. Setting up Kafka consumer.");
+		getContext().getLog().info("KafkaActor received {}. Setting up Kafka consumer.", bootCommand);
 		kafkaClient.start();
 		return Behaviors.same();
 	}

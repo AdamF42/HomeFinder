@@ -25,7 +25,7 @@ public class DefaultGetChatUseCase implements GetChatUseCase
 
 
 
-	private Chat mapDbUserToUser(it.adamf42.core.usecases.chat.repositories.ChatRepository.DbChat dbChat)
+	private Chat mapDbUserToUser(ChatRepository.DbChat dbChat)
 	{
 		if (dbChat == null)
 		{
