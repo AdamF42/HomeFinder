@@ -28,6 +28,8 @@ import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
 
 import java.io.Serializable;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
 import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
@@ -39,6 +41,8 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
     private UpdateChatUseCase updateChat;
     private GetChatUseCase getChat;
     private GetAllChatUseCase getAllChat;
+
+    private final Cache<Ad> adCache;
 
     public interface Command extends Serializable {
     }
@@ -126,8 +130,35 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
 
     }
 
-    public DatabaseActor(ActorContext<DatabaseActor.Command> context) {
+    private class Cache<T> {
+
+        private final int maxSize;
+        private final Deque<T> cache;
+
+        public Cache(int maxSize) {
+            if (maxSize <= 0) {
+                throw new IllegalArgumentException("Cache size must be greater than 0");
+            }
+            this.maxSize = maxSize;
+            this.cache = new ArrayDeque<>(maxSize);
+        }
+
+        public boolean isPresent(T obj) {
+            return cache.contains(obj);
+        }
+
+        public void insert(T obj) {
+            if (cache.size() >= maxSize) {
+                // Remove the oldest element if the cache is full
+                cache.pollLast();
+            }
+            cache.offerFirst(obj);
+        }
+    }
+
+    private DatabaseActor(ActorContext<DatabaseActor.Command> context) {
         super(context);
+        this.adCache = new Cache<Ad>(200); // TODO make it configurable
     }
 
     public static Behavior<DatabaseActor.Command> create() {
@@ -137,8 +168,7 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
     @Override
     public Receive<DatabaseActor.Command> createReceive() {
         return newReceiveBuilder()
-                .onMessage(BootCommand.class, msg ->
-                {
+                .onMessage(BootCommand.class, msg -> {
                     ConnectionString connectionString = new ConnectionString(msg.getConnString());
                     CodecRegistry pojoCodecRegistry = fromProviders(PojoCodecProvider.builder().automatic(true).build());
                     CodecRegistry codecRegistry = fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
@@ -159,10 +189,17 @@ public class DatabaseActor extends AbstractBehavior<DatabaseActor.Command> {
                     return Behaviors.same();
                 })
                 .onMessage(SaveAdCommand.class, msg -> {
+                    if (this.adCache.isPresent(msg.getAd())) {
+                        getContext().getLog().debug("Cached Ad: {}", msg.getAd());
+                        return Behaviors.same();
+                    }
                     Try.of(() -> this.createAd.execute(adToRequest(msg.getAd())))
                             .onFailure(CreateAdUseCase.AlreadyPresentException.class, e -> getContext().getLog().debug("Already present"))
+                            .onFailure(CreateAdUseCase.AlreadyPresentException.class, e -> this.adCache.insert(msg.getAd()))
                             .onSuccess(ad -> getContext().getLog().debug("Successfully saved Ad: {}", ad))
+                            .onSuccess(r -> this.adCache.insert(r.getAd()))
                             .andThen(r -> msg.getChatManager().tell(new ChatManagerActor.NewAdCommand(r.getAd())));
+                    getContext().getLog().debug("Local cache size: {}", adCache.cache.size());
                     return Behaviors.same();
                 })
                 .onMessage(SaveChatCommand.class, msg -> {
