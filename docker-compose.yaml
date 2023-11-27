@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: homefinder-app
+    image: ${REGISTRY}homefinder-app
     container_name: home_finder
     working_dir: /app
     volumes:
