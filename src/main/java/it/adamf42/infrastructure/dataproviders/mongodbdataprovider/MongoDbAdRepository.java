@@ -1,41 +1,41 @@
 package it.adamf42.infrastructure.dataproviders.mongodbdataprovider;
 
-import org.bson.Document;
-
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-
 import it.adamf42.core.usecases.ad.repositories.AdRepository;
+import org.bson.Document;
 
-public class MongoDbAdRepository implements AdRepository
-{
-	private final MongoCollection<Document> adCollection;
+import java.util.regex.Pattern;
 
-	public MongoDbAdRepository(MongoCollection<Document> adCollection)
-	{
-		this.adCollection = adCollection;
-	}
+public class MongoDbAdRepository implements AdRepository {
+    private final MongoCollection<Document> adCollection;
 
-	@Override
-	public DbAd save(DbAd ad)
-	{
-		Document adDocument = new Document().append("city", ad.getCity()).append("area", ad.getArea())
-		.append("street", ad.getStreet()).append("title", ad.getTitle()).append("price", ad.getPrice())
-		.append("squareMeters", ad.getSquareMeters()).append("floor", ad.getFloor())
-		.append("condominiumFees", ad.getCondominiumFees()).append("energyRating", ad.getEnergyRating())
-		.append("rooms", ad.getRooms()).append("bail", ad.getBail()).append("url", ad.getUrl())
-		.append("publisher", ad.getPublisher());
+    public MongoDbAdRepository(MongoCollection<Document> adCollection) {
+        this.adCollection = adCollection;
+    }
 
-		adCollection.insertOne(adDocument);
-		return ad;
-	}
+    @Override
+    public DbAd save(DbAd ad) {
+        Document adDocument = new Document().append("city", ad.getCity()).append("area", ad.getArea())
+                .append("street", ad.getStreet()).append("title", ad.getTitle()).append("price", ad.getPrice())
+                .append("squareMeters", ad.getSquareMeters()).append("floor", ad.getFloor())
+                .append("condominiumFees", ad.getCondominiumFees()).append("energyRating", ad.getEnergyRating())
+                .append("rooms", ad.getRooms()).append("bail", ad.getBail()).append("url", ad.getUrl())
+                .append("publisher", ad.getPublisher());
 
-	@Override
-	public boolean isPresent(DbAd dbAd)
-	{
-		Document existingDocument = adCollection.find(
-		Filters.and(Filters.eq("city", dbAd.getCity()), Filters.eq("title", dbAd.getTitle()),
-		Filters.eq("price", dbAd.getPrice()))).first();
-		return existingDocument != null;
-	}
+        adCollection.insertOne(adDocument);
+        return ad;
+    }
+
+    @Override
+    public boolean isPresent(DbAd dbAd) {
+        Document existingDocument = adCollection.find(
+                Filters.and(
+                        Filters.regex("city", Pattern.compile(dbAd.getCity(), Pattern.CASE_INSENSITIVE)),
+                        Filters.regex("title", Pattern.compile(dbAd.getTitle(), Pattern.CASE_INSENSITIVE)),
+                        Filters.eq("price", dbAd.getPrice())
+                )
+        ).first();
+        return existingDocument != null;
+    }
 }
